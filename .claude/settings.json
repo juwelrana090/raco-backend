@@ -32,7 +32,12 @@
       "Read(//c/Dev/Roco AI/raco-backend/src/modules/payments/interfaces/**)",
       "Read(//c/Dev/Roco AI/raco-backend/**)",
       "mcp__filesystem__list_directory",
-      "mcp__filesystem__list_allowed_directories"
+      "mcp__filesystem__list_allowed_directories",
+      "Bash(pnpm start:dev)",
+      "Bash(tasklist)",
+      "Bash(findstr node *)",
+      "Bash(pnpm prisma:generate)",
+      "Bash(pnpm prisma:seed)"
     ],
     "deny": [
       "Write(~/**)",

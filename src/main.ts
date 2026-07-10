@@ -111,11 +111,11 @@ async function bootstrap() {
   app.enableShutdownHooks();
   await app.listen(port);
 
-  logger.log(`🚀 Running on http://localhost:${port}/api/v1`);
-  logger.log(`📚 API Docs:  http://localhost:${port}/api-docs`);
-  logger.log(`📋 Postman:  http://localhost:${port}/postman`);
-  logger.log(`📄 OpenAPI:  http://localhost:${port}/api-json`);
-  logger.log(`💚 Health:   http://localhost:${port}/api-info`);
+  logger.log(`[APP]     Running on http://localhost:${port}/api/v1`);
+  logger.log(`[DOCS]    API Docs:  http://localhost:${port}/api-docs`);
+  logger.log(`[POSTMAN] Collection: http://localhost:${port}/postman`);
+  logger.log(`[JSON]    OpenAPI:   http://localhost:${port}/api-json`);
+  logger.log(`[HEALTH]  Status:    http://localhost:${port}/api-info`);
 }
 
 bootstrap().catch((error: Error) => {

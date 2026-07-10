@@ -24,7 +24,7 @@ export function setupScalarEndpoints(app: INestApplication, document: any) {
   // GET /api-info — health check
   app.use('/api-info', (req: Request, res: Response) => {
     res.json({
-      title: '🛒 Raco E-commerce API',
+      title: 'Raco E-commerce API',
       version: '1.0.0',
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -49,7 +49,7 @@ function generatePostmanCollection(document: any) {
   return {
     info: {
       name: 'Raco E-commerce API',
-      description: '🛒 Complete API collection for Raco e-commerce backend',
+      description: 'Complete API collection for Raco e-commerce backend',
       schema:
         'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
       version: '1.0.0',
@@ -113,7 +113,7 @@ function generatePostmanItems(document: any) {
 
         const tag = operation.tags?.[0] || 'General';
         if (!folders.has(tag)) {
-          folders.set(tag, { name: `📁 ${tag}`, item: [] });
+          folders.set(tag, { name: tag, item: [] });
         }
 
         const folder = folders.get(tag);

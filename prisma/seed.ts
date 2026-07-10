@@ -1,15 +1,19 @@
 import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+import { PrismaPg } from '@prisma/adapter-pg';
+import bcrypt from 'bcrypt';
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL!,
+});
+
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log('🌱 Starting database seed...');
+  console.log('[SEED] Starting database seed...');
 
-  // Hash password for admin user
-  const hashedPassword = await bcrypt.hash('Admin@123', 12);
+  // ── Admin user ──────────────────────────────────────────────────────────────
+  const hashedPassword = await bcrypt.hash('Admin@1234', 12);
 
-  // Create admin user
   const admin = await prisma.user.upsert({
     where: { email: 'admin@racocommerce.com' },
     update: {},
@@ -21,68 +25,82 @@ async function main() {
     },
   });
 
-  console.log('✅ Created admin user:', admin.email);
+  console.log('[SEED] Created admin user:', admin.email);
 
-  // Create categories hierarchy
-  const electronics = await prisma.category.upsert({
-    where: { id: 'electronics-root' },
-    update: {},
-    create: {
-      id: 'electronics-root',
-      name: 'Electronics',
-      description: 'Electronic devices and accessories',
-    },
+  // ── Categories ──────────────────────────────────────────────────────────────
+  // Since name is not unique in schema, we need to use findFirst + create pattern
+
+  let electronics = await prisma.category.findFirst({
+    where: { name: 'Electronics' },
   });
 
-  const phones = await prisma.category.upsert({
-    where: { id: 'phones-cat' },
-    update: {},
-    create: {
-      id: 'phones-cat',
-      name: 'Smartphones',
-      description: 'Mobile phones and accessories',
-      parentId: electronics.id,
-    },
+  if (!electronics) {
+    electronics = await prisma.category.create({
+      data: {
+        name: 'Electronics',
+        description: 'Electronic devices and accessories',
+      },
+    });
+  }
+
+  let phones = await prisma.category.findFirst({
+    where: { name: 'Smartphones' },
   });
 
-  const laptops = await prisma.category.upsert({
-    where: { id: 'laptops-cat' },
-    update: {},
-    create: {
-      id: 'laptops-cat',
-      name: 'Laptops',
-      description: 'Laptop computers',
-      parentId: electronics.id,
-    },
+  if (!phones) {
+    phones = await prisma.category.create({
+      data: {
+        name: 'Smartphones',
+        description: 'Mobile phones and accessories',
+        parentId: electronics.id,
+      },
+    });
+  }
+
+  let laptops = await prisma.category.findFirst({
+    where: { name: 'Laptops' },
   });
 
-  const accessories = await prisma.category.upsert({
-    where: { id: 'accessories-cat' },
-    update: {},
-    create: {
-      id: 'accessories-cat',
-      name: 'Accessories',
-      description: 'Electronic accessories',
-      parentId: electronics.id,
-    },
+  if (!laptops) {
+    laptops = await prisma.category.create({
+      data: {
+        name: 'Laptops',
+        description: 'Laptop computers',
+        parentId: electronics.id,
+      },
+    });
+  }
+
+  let accessories = await prisma.category.findFirst({
+    where: { name: 'Accessories' },
   });
+
+  if (!accessories) {
+    accessories = await prisma.category.create({
+      data: {
+        name: 'Accessories',
+        description: 'Electronic accessories',
+        parentId: electronics.id,
+      },
+    });
+  }
 
   console.log(
-    '✅ Created categories:',
+    '[SEED] Created categories:',
     electronics.name,
     phones.name,
     laptops.name,
     accessories.name,
   );
 
-  // Create sample products
+  // ── Products ────────────────────────────────────────────────────────────────
   const products = [
     {
       sku: 'PHONE-001',
       name: 'iPhone 15 Pro Max',
       description:
         'Latest iPhone with A17 Pro chip, titanium design, and advanced camera system',
-      price: 185000, // BDT in poisha
+      price: 185000,
       stock: 50,
       categoryId: phones.id,
       imageUrl: 'https://example.com/iphone15.jpg',
@@ -143,14 +161,13 @@ async function main() {
     });
   }
 
-  console.log(`✅ Created ${products.length} sample products`);
-
-  console.log('🌱 Seed completed successfully!');
+  console.log(`[SEED] Created ${products.length} sample products`);
+  console.log('[SEED] Database seeded successfully!');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seed failed:', e);
+    console.error('[ERROR] Seed failed:', e);
     process.exit(1);
   })
   .finally(async () => {
