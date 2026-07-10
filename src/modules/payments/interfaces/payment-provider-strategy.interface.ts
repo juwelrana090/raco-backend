@@ -1,5 +1,9 @@
 import { PaymentProvider, Order as PrismaOrder } from '@prisma/client';
-import type { ProviderPaymentHandle, PaymentResult, WebhookEvent } from '../dto/provider-payment-handle.dto';
+import type {
+  ProviderPaymentHandle,
+  PaymentResult,
+  WebhookEvent,
+} from '../dto/provider-payment-handle.dto';
 
 /**
  * Payment Provider Strategy Interface

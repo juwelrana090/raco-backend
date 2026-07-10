@@ -140,9 +140,7 @@ export class S3Service {
     }
 
     // Try to extract from S3 URL format
-    const match = url.match(
-      /https?:\/\/[^\/]+\.amazonaws\.com\/(.+)/,
-    );
+    const match = url.match(/https?:\/\/[^\/]+\.amazonaws\.com\/(.+)/);
     return match ? match[1] : '';
   }
 }

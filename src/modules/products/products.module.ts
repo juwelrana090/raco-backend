@@ -7,12 +7,7 @@ import { CategoriesModule } from '../categories/categories.module';
 import { S3Module } from '../s3/s3.module';
 
 @Module({
-  imports: [
-    PrismaModule,
-    RedisModule,
-    CategoriesModule,
-    S3Module,
-  ],
+  imports: [PrismaModule, RedisModule, CategoriesModule, S3Module],
   controllers: [ProductsController],
   providers: [ProductsService],
   exports: [ProductsService],

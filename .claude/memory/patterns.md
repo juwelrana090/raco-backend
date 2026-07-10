@@ -1,11 +1,14 @@
 # Established Patterns — raco-backend
 
 ## Domain Entity Pattern
+
 ### When to use
+
 - All database models should have corresponding domain entities
 - Wrap Prisma operations in OOP classes
 
 ### Example
+
 ```typescript
 // src/modules/products/entities/product.entity.ts
 export class Product implements PrismaProduct {
@@ -25,7 +28,7 @@ export class Product implements PrismaProduct {
   }
 
   toJSON() {
-    return { /* ... */ };
+    return {/* ... */};
   }
 
   // Domain logic methods
@@ -36,17 +39,21 @@ export class Product implements PrismaProduct {
 ```
 
 ### Anti-pattern
+
 - Direct Prisma model usage in controllers
 - Business logic in controllers
 
 ---
 
 ## DFS Traversal Pattern
+
 ### When to use
+
 - Category tree operations (per assessment requirement §2.2.5)
 - Finding all descendants in hierarchical data
 
 ### Example
+
 ```typescript
 async getDescendants(categoryId: string): Promise<string[]> {
   const cached = await this.redis.getCategoryTree(categoryId);
@@ -77,17 +84,21 @@ async getDescendants(categoryId: string): Promise<string[]> {
 ```
 
 ### Anti-pattern
+
 - BFS traversal (not compliant with assessment requirements)
 - Missing cache invalidation
 
 ---
 
 ## Cache Invalidation Pattern
+
 ### When to use
+
 - Any data change that affects cached queries
 - Category/product create/update/delete operations
 
 ### Example
+
 ```typescript
 async invalidateParentCache(categoryId: string): Promise<void> {
   await this.redis.invalidateCategoryCache(categoryId);
@@ -104,39 +115,47 @@ async invalidateParentCache(categoryId: string): Promise<void> {
 ```
 
 ### Anti-pattern
+
 - Forgetting to invalidate parent caches
 - Missing pattern-based invalidation for bulk operations
 
 ---
 
 ## Controller Response Pattern
+
 ### When to use
+
 - All service methods returning data to controllers
 
 ### Example
+
 ```typescript
 return {
   success: true,
   message: 'Products retrieved successfully',
   data: {
-    products: products.map(p => p.toJSON()),
-    pagination: { page, limit, total, totalPages }
-  }
+    products: products.map((p) => p.toJSON()),
+    pagination: { page, limit, total, totalPages },
+  },
 };
 ```
 
 ### Anti-pattern
+
 - Inconsistent response formats
 - Returning raw Prisma results without transformation
 
 ---
 
 ## Authorization Pattern
+
 ### When to use
+
 - Securing endpoints based on user roles
 - Public access for read-only operations
 
 ### Example
+
 ```typescript
 // Public read endpoint
 @Get()
@@ -151,16 +170,20 @@ async create(@Body() dto: CreateDto) { /* ... */ }
 ```
 
 ### Anti-pattern
+
 - Forgetting `@Public()` on public endpoints
 - Missing role guards on admin operations
 
 ---
 
 ## Validation Pattern
+
 ### When to use
+
 - All DTOs for API endpoints
 
 ### Example
+
 ```typescript
 export class CreateProductDto {
   @IsString()
@@ -177,16 +200,20 @@ export class CreateProductDto {
 ```
 
 ### Anti-pattern
+
 - Missing validation decorators
 - Not checking for duplicate resources (SKU, names)
 
 ---
 
 ## Error Handling Pattern
+
 ### When to use
+
 - Service layer validation and business logic errors
 
 ### Example
+
 ```typescript
 // Conflict for duplicate
 if (existingProduct) {
@@ -205,16 +232,20 @@ if (hasChildren) {
 ```
 
 ### Anti-pattern
+
 - Returning null instead of throwing NotFoundException
 - Generic error messages without specific details
 
 ---
 
 ## Module Import Pattern
+
 ### When to use
+
 - Organizing module dependencies
 
 ### Example
+
 ```typescript
 @Module({
   imports: [
@@ -230,18 +261,22 @@ export class ProductsModule {}
 ```
 
 ### Anti-pattern
+
 - Circular dependencies
 - Missing required module imports
 
 ---
 
 ## Authentication Pattern
+
 ### When to use
+
 - User registration and login operations
 - JWT token generation and validation
 - Password hashing and verification
 
 ### Example
+
 ```typescript
 // User entity with password management
 export class User implements PrismaUser {
@@ -268,6 +303,7 @@ async generateTokenPair(user: User): Promise<TokenPair> {
 ```
 
 ### Anti-pattern
+
 - Storing passwords in plain text
 - Returning passwords in API responses
 - Using weak hashing algorithms (md5, sha1)
@@ -275,12 +311,15 @@ async generateTokenPair(user: User): Promise<TokenPair> {
 ---
 
 ## Refresh Token Pattern
+
 ### When to use
+
 - Long-lived authentication sessions
 - Token rotation for security
 - Logout functionality
 
 ### Example
+
 ```typescript
 // Generate and store refresh token
 async generateRefreshToken(user: User): Promise<string> {
@@ -315,6 +354,7 @@ async verifyRefreshToken(token: string): Promise<User | null> {
 ```
 
 ### Anti-pattern
+
 - Storing refresh tokens only in JWT without database reference
 - Not implementing token revocation
 - Missing expiration cleanup
@@ -322,12 +362,15 @@ async verifyRefreshToken(token: string): Promise<User | null> {
 ---
 
 ## Guard Pattern
+
 ### When to use
+
 - Protecting authenticated routes
 - Role-based authorization
 - Public route exceptions
 
 ### Example
+
 ```typescript
 // JWT Guard with public route support
 @Injectable()
@@ -351,7 +394,10 @@ export class JwtGuard extends AuthGuard('jwt') {
 @Injectable()
 export class AdminGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.get<Role[]>('roles', context.getHandler());
+    const requiredRoles = this.reflector.get<Role[]>(
+      'roles',
+      context.getHandler(),
+    );
     const user = context.switchToHttp().getRequest().user;
 
     return requiredRoles.includes(user.role);
@@ -360,6 +406,7 @@ export class AdminGuard implements CanActivate {
 ```
 
 ### Anti-pattern
+
 - Forgetting @Public() decorator on public endpoints
 - Not checking roles in service layer as second line of defense
 - Guards that only check authentication but not authorization
@@ -367,12 +414,15 @@ export class AdminGuard implements CanActivate {
 ---
 
 ## Decorator Pattern
+
 ### When to use
+
 - Injecting current user in controllers
 - Specifying required roles
 - Marking public routes
 
 ### Example
+
 ```typescript
 // Current user decorator
 export const CurrentUser = createParamDecorator(
@@ -406,6 +456,7 @@ async createProduct(@Body() dto: CreateProductDto) {
 ```
 
 ### Anti-pattern
+
 - Hardcoding user IDs instead of using @CurrentUser()
 - Missing role decorators on admin endpoints
 - Inconsistent guard application

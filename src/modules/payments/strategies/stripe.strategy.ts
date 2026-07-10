@@ -1,9 +1,17 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
-import { PaymentProvider, PaymentStatus, Order as PrismaOrder } from '@prisma/client';
+import {
+  PaymentProvider,
+  PaymentStatus,
+  Order as PrismaOrder,
+} from '@prisma/client';
 import { PaymentProviderStrategy } from '../interfaces/payment-provider-strategy.interface';
-import type { ProviderPaymentHandle, PaymentResult, WebhookEvent } from '../dto/provider-payment-handle.dto';
+import type {
+  ProviderPaymentHandle,
+  PaymentResult,
+  WebhookEvent,
+} from '../dto/provider-payment-handle.dto';
 
 /**
  * Stripe Payment Strategy
@@ -25,7 +33,10 @@ export class StripeStrategy implements PaymentProviderStrategy {
       throw new Error('STRIPE_SECRET_KEY environment variable is not set');
     }
 
-    const apiVersion = this.config.get<string>('STRIPE_API_VERSION', '2024-12-18.acacia');
+    const apiVersion = this.config.get<string>(
+      'STRIPE_API_VERSION',
+      '2024-12-18.acacia',
+    );
     this.stripe = new Stripe(secretKey, {
       apiVersion: apiVersion as Stripe.LatestApiVersion,
     });
@@ -56,10 +67,12 @@ export class StripeStrategy implements PaymentProviderStrategy {
         },
         {
           idempotencyKey: `payment-${order.id}`, // Ensure idempotency
-        }
+        },
       );
 
-      this.logger.log(`Created Stripe Payment Intent: ${paymentIntent.id} for order: ${order.id}`);
+      this.logger.log(
+        `Created Stripe Payment Intent: ${paymentIntent.id} for order: ${order.id}`,
+      );
 
       return {
         provider: PaymentProvider.STRIPE,
@@ -74,7 +87,9 @@ export class StripeStrategy implements PaymentProviderStrategy {
         status: 'pending',
       };
     } catch (error) {
-      this.logger.error(`Failed to create Stripe Payment Intent: ${error.message}`);
+      this.logger.error(
+        `Failed to create Stripe Payment Intent: ${error.message}`,
+      );
       throw new Error(`Stripe payment creation failed: ${error.message}`);
     }
   }
@@ -93,11 +108,14 @@ export class StripeStrategy implements PaymentProviderStrategy {
         throw new BadRequestException('Missing paymentIntentId in handle');
       }
 
-      const paymentIntent = await this.stripe.paymentIntents.confirm(paymentIntentId);
+      const paymentIntent =
+        await this.stripe.paymentIntents.confirm(paymentIntentId);
 
       return this.toPaymentResult(paymentIntent);
     } catch (error) {
-      this.logger.error(`Failed to confirm Stripe Payment Intent: ${error.message}`);
+      this.logger.error(
+        `Failed to confirm Stripe Payment Intent: ${error.message}`,
+      );
       throw new Error(`Stripe payment confirmation failed: ${error.message}`);
     }
   }
@@ -110,10 +128,13 @@ export class StripeStrategy implements PaymentProviderStrategy {
    */
   async queryPayment(transactionId: string): Promise<PaymentResult> {
     try {
-      const paymentIntent = await this.stripe.paymentIntents.retrieve(transactionId);
+      const paymentIntent =
+        await this.stripe.paymentIntents.retrieve(transactionId);
       return this.toPaymentResult(paymentIntent);
     } catch (error) {
-      this.logger.error(`Failed to query Stripe Payment Intent: ${error.message}`);
+      this.logger.error(
+        `Failed to query Stripe Payment Intent: ${error.message}`,
+      );
       throw new Error(`Stripe payment query failed: ${error.message}`);
     }
   }
@@ -123,7 +144,10 @@ export class StripeStrategy implements PaymentProviderStrategy {
    *
    * Critical: Signature verification prevents fraudulent webhooks
    */
-  async verifyWebhook(rawBody: Buffer, signature: string): Promise<WebhookEvent> {
+  async verifyWebhook(
+    rawBody: Buffer,
+    signature: string,
+  ): Promise<WebhookEvent> {
     const webhookSecret = this.config.get<string>('STRIPE_WEBHOOK_SECRET');
     if (!webhookSecret) {
       throw new Error('STRIPE_WEBHOOK_SECRET environment variable is not set');
@@ -133,7 +157,7 @@ export class StripeStrategy implements PaymentProviderStrategy {
       const event = this.stripe.webhooks.constructEvent(
         rawBody,
         signature,
-        webhookSecret
+        webhookSecret,
       );
 
       this.logger.log(`Verified Stripe webhook: ${event.type} (${event.id})`);
@@ -152,7 +176,9 @@ export class StripeStrategy implements PaymentProviderStrategy {
         rawEvent: event,
       };
     } catch (error) {
-      this.logger.error(`Stripe webhook signature verification failed: ${error.message}`);
+      this.logger.error(
+        `Stripe webhook signature verification failed: ${error.message}`,
+      );
       throw new BadRequestException('Invalid webhook signature');
     }
   }
@@ -167,11 +193,13 @@ export class StripeStrategy implements PaymentProviderStrategy {
 
     if (paymentIntent.status === 'succeeded') {
       status = 'success';
-    } else if (paymentIntent.status === 'requires_payment_method' ||
-               paymentIntent.status === 'requires_confirmation' ||
-               paymentIntent.status === 'requires_action' ||
-               paymentIntent.status === 'processing' ||
-               paymentIntent.status === 'requires_capture') {
+    } else if (
+      paymentIntent.status === 'requires_payment_method' ||
+      paymentIntent.status === 'requires_confirmation' ||
+      paymentIntent.status === 'requires_action' ||
+      paymentIntent.status === 'processing' ||
+      paymentIntent.status === 'requires_capture'
+    ) {
       status = 'pending';
     } else if (paymentIntent.status === 'canceled') {
       status = 'failed';

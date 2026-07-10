@@ -1,11 +1,13 @@
 > ⚠️ PROJECT SCOPED: All reads and updates stay in .claude/ only.
 
 ## Local Cache First
-1. Read .claude/skills/_base.md           ← includes top gotchas
-2. Read .claude/skills/_modules-index.md  ← find the affected module fast
-Only read full .claude/memory/gotchas.md or .claude/modules/ if cache is cold.
+
+1. Read .claude/skills/_base.md ← includes top gotchas
+2. Read .claude/skills/_modules-index.md ← find the affected module fast
+   Only read full .claude/memory/gotchas.md or .claude/modules/ if cache is cold.
 
 ## Diagnose and fix
+
 3. Read .claude/memory/gotchas.md if not covered by cache
 4. Read .claude/modules/[relevant].md
 5. Trace actual root cause — never guess

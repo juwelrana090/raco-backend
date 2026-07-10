@@ -42,9 +42,18 @@ export class OrdersController {
     status: HttpStatus.CREATED,
     description: 'Order created successfully',
   })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid request data' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'One or more products not found' })
-  @ApiResponse({ status: HttpStatus.CONFLICT, description: 'Insufficient stock for one or more products' })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid request data',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'One or more products not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'Insufficient stock for one or more products',
+  })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
   async createOrder(
     @CurrentUser('id') userId: string,
@@ -67,7 +76,10 @@ export class OrdersController {
     description: 'Order retrieved successfully',
   })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Order not found' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'You do not have permission to access this order' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'You do not have permission to access this order',
+  })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
   async getOrderById(
     @CurrentUser('id') userId: string,
@@ -107,9 +119,15 @@ export class OrdersController {
     status: HttpStatus.OK,
     description: 'Checkout initiated successfully',
   })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Order cannot be checked out' })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Order cannot be checked out',
+  })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Order not found' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'You do not have permission to access this order' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'You do not have permission to access this order',
+  })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
   async checkoutOrder(
     @CurrentUser('id') userId: string,
@@ -133,9 +151,15 @@ export class OrdersController {
     status: HttpStatus.OK,
     description: 'Order cancelled successfully',
   })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Order cannot be cancelled' })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Order cannot be cancelled',
+  })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Order not found' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'You do not have permission to cancel this order' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'You do not have permission to cancel this order',
+  })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
   async cancelOrder(
     @CurrentUser('id') userId: string,

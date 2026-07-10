@@ -1,7 +1,7 @@
 # Project: raco-backend
 
 - **Type**: Backend API (NestJS)
-- **Stack**:  Node.js
+- **Stack**: Node.js
 - **Domain**: E-commerce ordering & payment system
 - **Core entities**: Users, Products, Categories, Orders, OrderItems, Payments
 - **Payment providers**: Stripe, bKash (strategy pattern — pluggable)

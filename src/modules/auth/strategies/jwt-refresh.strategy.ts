@@ -7,14 +7,19 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 
 @Injectable()
-export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
+export class JwtRefreshStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-refresh',
+) {
   constructor(
     private config: ConfigService,
     private authService: any, // We'll use a simplified approach
   ) {
     const refreshSecret = config.get<string>('JWT_REFRESH_SECRET');
     if (!refreshSecret) {
-      throw new Error('JWT_REFRESH_SECRET is not defined in environment variables');
+      throw new Error(
+        'JWT_REFRESH_SECRET is not defined in environment variables',
+      );
     }
 
     super({

@@ -1,12 +1,14 @@
 > ⚠️ PROJECT SCOPED: Read only from this project's .claude/ directory.
 
 ## Local Cache First — load in this order before anything else
+
 1. .claude/skills/_base.md
 2. .claude/skills/_stack.md
 3. .claude/skills/_modules-index.md
-If any of the above are marked 🔴 Cold, note it and continue — do not stop.
+   If any of the above are marked 🔴 Cold, note it and continue — do not stop.
 
 ## Then load full memory
+
 4. CLAUDE.md (already loaded by Claude Code)
 5. .claude/memory/context.md
 6. .claude/memory/architecture.md
@@ -21,6 +23,7 @@ If any of the above are marked 🔴 Cold, note it and continue — do not stop.
 15. Read .claude/tasks/inprogress/ — list what is in progress
 
 Report:
+
 - ✅ Memory loaded — what you know about this project
 - ⚠️ Cache status — if skills/ files are cold, show: "Run /r-cache-warm to speed up future sessions"
 - ⚠️ Stale modules — list with suggested action
@@ -35,11 +38,11 @@ At the very end of the report show a token usage meter:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🧠 TOKEN USAGE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Used:      [████░░░░░░░░░░░░░░░░]  ~XX%  (~XXk / 200k)
-Remaining: [████████████████░░░░]  ~XX%  (~XXk tokens)
-Status:    🟢 Safe / 🟡 Medium / 🔴 Critical
+Used: [████░░░░░░░░░░░░░░░░] ~XX% (~XXk / 200k)
+Remaining: [████████████████░░░░] ~XX% (~XXk tokens)
+Status: 🟢 Safe / 🟡 Medium / 🔴 Critical
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🟢 Safe 0–60%  → keep working
+🟢 Safe 0–60% → keep working
 🟡 Medium 60–80% → wrap up current task, run /r-end soon
 🔴 Critical 80%+ → run /r-end NOW before context cuts off
 Tip: run /r-tokens anytime to check remaining context.

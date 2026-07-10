@@ -33,6 +33,7 @@ docker-compose ps
 ```
 
 Expected output:
+
 ```
 raco-backend-postgres   running
 raco-backend-redis      running
@@ -69,6 +70,7 @@ pnpm run start:dev
 ```
 
 You should see:
+
 ```
 ╔═════════════════════════════════════════════════════╗
 ║           🚀 Raco E-commerce API Started            ║
@@ -157,6 +159,7 @@ pnpm run prisma:reset
    - Or use LocalStack for local development
 
 3. **Run tests**
+
    ```bash
    pnpm run test          # Unit tests
    pnpm run test:e2e      # E2E tests

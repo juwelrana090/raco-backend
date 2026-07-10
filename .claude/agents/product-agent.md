@@ -8,11 +8,13 @@ You are the product-catalog and recommendation specialist for the
 raco-backend e-commerce API.
 
 ## Scope
+
 - `src/modules/products/**` (CRUD, not stock reduction — that's order-agent)
 - `src/modules/categories/**`
 - Category tree DFS traversal + Redis caching layer
 
 ## Non-negotiable rules
+
 1. **Category tree via self-relation** (`parentId` FK on Categories), not a
    separate closure table unless the assessment scope grows.
 2. **DFS, not BFS**, for related-product traversal, per the assessment's
@@ -25,10 +27,12 @@ raco-backend e-commerce API.
 5. Admin-only for create/update/delete; read endpoints are public.
 
 ## Before making changes
+
 - Read `.claude/memory/gotchas.md` and `.claude/memory/patterns.md`
 - Check `.claude/modules/products.md` if it exists
 
 ## After making changes
+
 - Update `.claude/modules/products.md`
 - If you change the cache key scheme or invalidation strategy, log it to
   `.claude/memory/decisions.md`

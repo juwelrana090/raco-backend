@@ -41,8 +41,8 @@ interface PaymentProviderStrategy {
 }
 
 // Concrete implementations
-class StripeStrategy implements PaymentProviderStrategy { }
-class BkashStrategy implements PaymentProviderStrategy { }
+class StripeStrategy implements PaymentProviderStrategy {}
+class BkashStrategy implements PaymentProviderStrategy {}
 
 // Adding a new provider = one class + registry entry
 // No changes needed to OrderService!
@@ -54,10 +54,10 @@ Order totals are computed deterministically, preventing inconsistencies:
 
 ```typescript
 // Price snapshot at order time (minor units)
-subtotal = price * quantity
+subtotal = price * quantity;
 
 // Order total = sum of item subtotals
-order.total_amount = sum(item.subtotal)
+order.total_amount = sum(item.subtotal);
 
 // Never floating point, always deterministic
 // Same inputs → same output, every time
@@ -69,8 +69,8 @@ Stock reduction uses conditional updates to prevent overselling:
 
 ```sql
 -- If stock is insufficient, update affects 0 rows → transaction rollback
-UPDATE products 
-SET stock = stock - :qty 
+UPDATE products
+SET stock = stock - :qty
 WHERE id = :id AND stock >= :qty
 ```
 
@@ -78,22 +78,22 @@ WHERE id = :id AND stock >= :qty
 // Only reduce stock after successful payment
 await prisma.$transaction(async (tx) => {
   // Mark order as paid
-  await tx.order.update({ 
-    where: { id }, 
-    data: { status: 'PAID' } 
+  await tx.order.update({
+    where: { id },
+    data: { status: 'PAID' },
   });
-  
+
   // Conditional stock update
   const result = await tx.product.updateMany({
     where: {
       id: productId,
-      stock: { gte: quantity }  // Only if sufficient stock
+      stock: { gte: quantity }, // Only if sufficient stock
     },
     data: {
-      stock: { decrement: quantity }
-    }
+      stock: { decrement: quantity },
+    },
   });
-  
+
   // If update failed, rollback
   if (result.count === 0) {
     throw new Error('Insufficient stock');
@@ -111,21 +111,21 @@ async getDescendants(categoryId: string): Promise<string[]> {
   // Check cache first
   const cached = await this.redis.get(`category:tree:${categoryId}`);
   if (cached) return cached;
-  
+
   // DFS traversal
   const descendants = [];
   const stack = [categoryId];
-  
+
   while (stack.length > 0) {
     const current = stack.pop();
     const children = await this.findChildren(current);
     descendants.push(...children.map(c => c.id));
     stack.push(...children.map(c => c.id));
   }
-  
+
   // Cache for ~1 hour
   await this.redis.set(`category:tree:${categoryId}`, descendants, 3600);
-  
+
   return descendants;
 }
 ```
@@ -194,8 +194,8 @@ async getMyOrders(@CurrentUser() user: User) {
 ValidationPipe({
   whitelist: true,
   forbidNonWhitelisted: true,
-  transform: true,  // Auto-transform to DTO instances
-})
+  transform: true, // Auto-transform to DTO instances
+});
 
 // DTO example
 export class CreateProductDto {
@@ -205,7 +205,7 @@ export class CreateProductDto {
 
   @IsInt()
   @Min(0)
-  price: number;  // In minor units (cents/poisha)
+  price: number; // In minor units (cents/poisha)
 }
 ```
 
@@ -275,9 +275,9 @@ async updateCategory(id: string, dto: UpdateCategoryDto) {
 
 // Invalidate on product changes
 async updateProduct(id: string, dto: UpdateProductDto) {
-  const product = await this.prisma.product.update({ 
-    where: { id }, 
-    data: dto 
+  const product = await this.prisma.product.update({
+    where: { id },
+    data: dto
   });
   await this.redis.delPattern(`category:tree:*`);
 }
@@ -301,7 +301,7 @@ describe('OrderDomain', () => {
     const order = new OrderDomain();
     order.addItem({ productId: '1', quantity: 2, price: 1000 });
     order.addItem({ productId: '2', quantity: 1, price: 500 });
-    expect(order.totalAmount).toBe(2500);  // (2 * 1000) + (1 * 500)
+    expect(order.totalAmount).toBe(2500); // (2 * 1000) + (1 * 500)
   });
 });
 ```
@@ -337,7 +337,7 @@ HEALTHCHECK --interval=30s
 ### Docker Compose
 
 - **postgres**: Official PostgreSQL 16 Alpine
-- **redis**: Official Redis 7 Alpine  
+- **redis**: Official Redis 7 Alpine
 - **api**: Built from Dockerfile, depends on db + redis
 - **Networks**: Isolated bridge network
 - **Volumes**: Named volumes for data persistence

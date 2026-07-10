@@ -29,6 +29,7 @@ test/
 ### What to Test
 
 **Domain Classes:**
+
 - Business logic and calculations
 - State transitions
 - Validation rules
@@ -48,7 +49,7 @@ describe('OrderDomain', () => {
         quantity: 2,
         price: 1000, // 1000 cents = 10.00 BDT
       });
-      
+
       expect(order.items).toHaveLength(1);
       expect(order.items[0].productId).toBe('prod-1');
       expect(order.items[0].quantity).toBe(2);
@@ -61,13 +62,13 @@ describe('OrderDomain', () => {
       const order = new OrderDomain();
       order.addItem({ productId: '1', quantity: 2, price: 1000 });
       order.addItem({ productId: '2', quantity: 1, price: 500 });
-      
+
       const total = order.calculateTotal();
-      
+
       // (2 * 1000) + (1 * 500) = 2500
       expect(total).toBe(2500);
     });
-    
+
     it('should handle empty order', () => {
       const order = new OrderDomain();
       const total = order.calculateTotal();
@@ -79,16 +80,16 @@ describe('OrderDomain', () => {
     it('should transition from pending to paid', () => {
       const order = new OrderDomain();
       expect(order.status).toBe('PENDING');
-      
+
       order.markPaid();
-      
+
       expect(order.status).toBe('PAID');
     });
-    
+
     it('should throw if already paid', () => {
       const order = new OrderDomain();
       order.markPaid();
-      
+
       expect(() => order.markPaid()).toThrow('Order already paid');
     });
   });
@@ -97,14 +98,14 @@ describe('OrderDomain', () => {
     it('should cancel pending order', () => {
       const order = new OrderDomain();
       order.cancel();
-      
+
       expect(order.status).toBe('CANCELED');
     });
-    
+
     it('should not cancel paid order', () => {
       const order = new OrderDomain();
       order.markPaid();
-      
+
       expect(() => order.cancel()).toThrow('Cannot cancel paid order');
     });
   });
@@ -125,11 +126,11 @@ describe('ProductDomain', () => {
         stock: 10,
         price: 1000,
       });
-      
+
       product.reduceStock(3);
       expect(product.stock).toBe(7);
     });
-    
+
     it('should throw when stock insufficient', () => {
       const product = new ProductDomain({
         id: '1',
@@ -137,7 +138,7 @@ describe('ProductDomain', () => {
         stock: 2,
         price: 1000,
       });
-      
+
       expect(() => product.reduceStock(5)).toThrow('Insufficient stock');
     });
   });
@@ -149,6 +150,7 @@ describe('ProductDomain', () => {
 ### What to Test
 
 **Complete User Flows:**
+
 - Authentication flows
 - Order creation and checkout
 - Payment processing
@@ -263,9 +265,7 @@ describe('Auth Flow (e2e)', () => {
     });
 
     it('should reject request without token', () => {
-      return request(app.getHttpServer())
-        .get('/api/v1/users/me')
-        .expect(401);
+      return request(app.getHttpServer()).get('/api/v1/users/me').expect(401);
     });
 
     it('should reject request with invalid token', () => {
@@ -336,9 +336,7 @@ describe('Order Flow (e2e)', () => {
       .post('/api/v1/orders')
       .set('Authorization', `Bearer ${userToken}`)
       .send({
-        items: [
-          { productId, quantity: 2 }
-        ]
+        items: [{ productId, quantity: 2 }],
       });
 
     expect(response.status).toBe(201);
@@ -352,8 +350,8 @@ describe('Order Flow (e2e)', () => {
       .set('Authorization', `Bearer ${userToken}`)
       .send({
         items: [
-          { productId, quantity: 100 } // More than available
-        ]
+          { productId, quantity: 100 }, // More than available
+        ],
       });
 
     expect(response.status).toBe(400);
@@ -400,6 +398,7 @@ open coverage/index.html
 ```
 
 Target coverage:
+
 - **Statements**: > 80%
 - **Branches**: > 75%
 - **Functions**: > 80%
@@ -477,7 +476,7 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:16
@@ -516,7 +515,7 @@ jobs:
 beforeAll(async () => {
   // Run migrations
   await execSync('pnpm run prisma:migrate deploy');
-  
+
   // Seed test data
   await execSync('pnpm run prisma:seed');
 });

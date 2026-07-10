@@ -79,7 +79,10 @@ export class ProductsController {
     description: 'Product retrieved successfully',
     type: ProductResponseDto,
   })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Product not found' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Product not found',
+  })
   @ApiParam({ name: 'id', type: String })
   async findOne(@Param('id') id: string): Promise<ProductResponseDto> {
     const product = await this.productsService.findOne(id);
@@ -91,13 +94,18 @@ export class ProductsController {
    */
   @Get(':id/recommendations')
   @Public()
-  @ApiOperation({ summary: 'Get recommended products using category tree traversal' })
+  @ApiOperation({
+    summary: 'Get recommended products using category tree traversal',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Recommended products retrieved successfully',
     type: Object,
   })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Product not found' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Product not found',
+  })
   @ApiParam({ name: 'id', type: String })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
   async getRecommendations(
@@ -121,10 +129,18 @@ export class ProductsController {
     type: ProductResponseDto,
   })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input' })
-  @ApiResponse({ status: HttpStatus.CONFLICT, description: 'SKU already exists' })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'SKU already exists',
+  })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Admin access required' })
-  async create(@Body() createProductDto: CreateProductDto): Promise<ProductResponseDto> {
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Admin access required',
+  })
+  async create(
+    @Body() createProductDto: CreateProductDto,
+  ): Promise<ProductResponseDto> {
     const product = await this.productsService.create(createProductDto);
     return product.toJSON() as ProductResponseDto;
   }
@@ -143,10 +159,19 @@ export class ProductsController {
     type: ProductResponseDto,
   })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Product not found' })
-  @ApiResponse({ status: HttpStatus.CONFLICT, description: 'SKU already exists' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Product not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'SKU already exists',
+  })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Admin access required' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Admin access required',
+  })
   @ApiParam({ name: 'id', type: String })
   async update(
     @Param('id') id: string,
@@ -165,11 +190,23 @@ export class ProductsController {
   @Roles('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a product (Admin only)' })
-  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Product deleted successfully' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Product not found' })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Product referenced in orders' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Product deleted successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Product not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Product referenced in orders',
+  })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Admin access required' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Admin access required',
+  })
   @ApiParam({ name: 'id', type: String })
   async remove(@Param('id') id: string): Promise<void> {
     await this.productsService.remove(id);
@@ -189,10 +226,19 @@ export class ProductsController {
     description: 'Product image uploaded successfully',
     type: ProductImageResponseDto,
   })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid file type or size' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Product not found' })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid file type or size',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Product not found',
+  })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Admin access required' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Admin access required',
+  })
   @ApiConsumes('multipart/form-data')
   @ApiParam({ name: 'id', type: String })
   async uploadProductImage(
@@ -225,10 +271,19 @@ export class ProductsController {
   @Roles('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete product image (Admin only)' })
-  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Product image deleted successfully' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Product or image not found' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Product image deleted successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Product or image not found',
+  })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Admin access required' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Admin access required',
+  })
   @ApiParam({ name: 'id', type: String })
   async deleteProductImage(@Param('id') id: string): Promise<void> {
     await this.productsService.deleteProductImage(id);

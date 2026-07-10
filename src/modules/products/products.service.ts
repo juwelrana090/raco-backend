@@ -31,7 +31,8 @@ export class ProductsService {
    * Create a new product
    */
   async create(createProductDto: CreateProductDto): Promise<Product> {
-    const { sku, name, description, price, stock, imageUrl, categoryId } = createProductDto;
+    const { sku, name, description, price, stock, imageUrl, categoryId } =
+      createProductDto;
 
     // Check if SKU already exists
     const existingProduct = await this.prisma.product.findUnique({
@@ -73,7 +74,14 @@ export class ProductsService {
    * Get all products with pagination and filtering
    */
   async findAll(query: QueryProductDto) {
-    const { page = 1, limit = 10, categoryId, search, sortBy = 'createdAt', sortOrder = 'desc' } = query;
+    const {
+      page = 1,
+      limit = 10,
+      categoryId,
+      search,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = query;
 
     const skip = (page - 1) * limit;
 
@@ -82,7 +90,8 @@ export class ProductsService {
 
     if (categoryId) {
       // Get all descendant categories
-      const descendantIds = await this.categoriesService.getDescendants(categoryId);
+      const descendantIds =
+        await this.categoriesService.getDescendants(categoryId);
       const allCategoryIds = [categoryId, ...descendantIds];
       where.categoryId = { in: allCategoryIds };
     }
@@ -160,7 +169,9 @@ export class ProductsService {
     const product = await this.findOne(productId);
 
     // Get all descendant categories of the product's category
-    const descendantIds = await this.categoriesService.getDescendants(product.categoryId);
+    const descendantIds = await this.categoriesService.getDescendants(
+      product.categoryId,
+    );
 
     // Include the current category and all descendants
     const allCategoryIds = [product.categoryId, ...descendantIds];
@@ -203,7 +214,10 @@ export class ProductsService {
   /**
    * Update a product
    */
-  async update(id: string, updateProductDto: UpdateProductDto): Promise<Product> {
+  async update(
+    id: string,
+    updateProductDto: UpdateProductDto,
+  ): Promise<Product> {
     const existing = await this.findOne(id);
     const { sku, categoryId, ...otherData } = updateProductDto;
 
@@ -306,7 +320,9 @@ export class ProductsService {
   /**
    * Recursively invalidate parent category caches
    */
-  private async invalidateParentCategoryCache(categoryId: string): Promise<void> {
+  private async invalidateParentCategoryCache(
+    categoryId: string,
+  ): Promise<void> {
     await this.redis.invalidateCategoryCache(categoryId);
 
     const category = await this.prisma.category.findUnique({

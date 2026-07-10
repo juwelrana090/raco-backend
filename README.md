@@ -287,8 +287,8 @@ Order totals are computed deterministically:
 
 ```typescript
 // Price snapshot at order time (in minor units)
-subtotal = price * quantity
-total_amount = sum(item.subtotal)
+subtotal = price * quantity;
+total_amount = sum(item.subtotal);
 ```
 
 ### Safe Stock Reduction
@@ -297,8 +297,8 @@ Stock is only reduced after successful payment:
 
 ```typescript
 // Conditional update prevents overselling
-UPDATE products 
-SET stock = stock - :qty 
+UPDATE products
+SET stock = stock - :qty
 WHERE id = :id AND stock >= :qty
 ```
 
@@ -314,16 +314,19 @@ category:tree:{id} -> [descendant_category_ids]
 ## 📝 API Endpoints
 
 ### Authentication
+
 - `POST /api/v1/auth/register` - User registration
 - `POST /api/v1/auth/login` - User login
 - `POST /api/v1/auth/refresh` - Refresh access token
 
 ### Users
+
 - `GET /api/v1/users/me` - Get current user
 - `GET /api/v1/users/me/orders` - Get user's orders
 - `GET /api/v1/users/me/payments` - Get user's payments
 
 ### Products (Admin for mutations)
+
 - `GET /api/v1/products` - List products
 - `GET /api/v1/products/:id` - Get product details
 - `GET /api/v1/products/:id/recommendations` - Get recommended products
@@ -332,6 +335,7 @@ category:tree:{id} -> [descendant_category_ids]
 - `DELETE /api/v1/products/:id` - Delete product (Admin)
 
 ### Categories
+
 - `GET /api/v1/categories` - Get category tree
 - `GET /api/v1/categories/:id` - Get category details
 - `POST /api/v1/categories` - Create category (Admin)
@@ -339,11 +343,13 @@ category:tree:{id} -> [descendant_category_ids]
 - `DELETE /api/v1/categories/:id` - Delete category (Admin)
 
 ### Orders
+
 - `POST /api/v1/orders` - Create order from cart
 - `GET /api/v1/orders/:id` - Get order details
 - `POST /api/v1/orders/:id/checkout` - Initiate payment
 
 ### Payments
+
 - `POST /api/v1/payments/stripe/webhook` - Stripe webhook
 - `POST /api/v1/payments/bkash/callback` - bKash callback
 - `GET /api/v1/payments/:id` - Get payment details

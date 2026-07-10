@@ -5,10 +5,7 @@ import { PrismaModule } from '../../common/prisma/prisma.module';
 import { RedisModule } from '../../common/redis/redis.module';
 
 @Module({
-  imports: [
-    PrismaModule,
-    RedisModule,
-  ],
+  imports: [PrismaModule, RedisModule],
   controllers: [CategoriesController],
   providers: [CategoriesService],
   exports: [CategoriesService],

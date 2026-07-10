@@ -1,9 +1,11 @@
 # Products Module
 
 ## Purpose
+
 Product catalog management with CRUD operations, category-based recommendations using DFS traversal, and Redis caching.
 
 ## Architecture
+
 - **Domain Entity**: `Product` class wraps Prisma operations
 - **Service Layer**: Business logic with Redis cache integration
 - **Controller**: RESTful endpoints with Swagger documentation
@@ -12,6 +14,7 @@ Product catalog management with CRUD operations, category-based recommendations 
 ## Key Features
 
 ### 1. Product CRUD
+
 - Create product with unique SKU validation
 - List products with pagination, filtering, and sorting
 - Get product by ID
@@ -19,22 +22,26 @@ Product catalog management with CRUD operations, category-based recommendations 
 - Delete product (admin only, with order reference check)
 
 ### 2. Category-Based Recommendations (DFS Traversal)
+
 - Endpoint: `GET /products/:id/recommendations`
 - Uses DFS traversal to find products in descendant categories
 - Caches category tree in Redis for performance
 - Returns in-stock products sorted by availability
 
 ### 3. Cache Invalidation
+
 - Invalidates category cache on product create/update/delete
 - Recursively invalidates parent category caches
 - Uses Redis pattern matching for bulk invalidation
 
 ## Authorization
+
 - **Public**: GET endpoints (list, details, recommendations)
 - **Admin only**: POST, PATCH, DELETE endpoints
 - Uses `@Roles('ADMIN')` decorator with AdminGuard
 
 ## Dependencies
+
 - `PrismaService`: Database operations
 - `RedisService`: Caching layer
 - `CategoriesService`: Category hierarchy traversal
@@ -44,11 +51,13 @@ Product catalog management with CRUD operations, category-based recommendations 
 ## API Endpoints
 
 ### Public (Read)
+
 - `GET /products` - List with pagination/filtering
 - `GET /products/:id` - Get product details
 - `GET /products/:id/recommendations` - Category-based recommendations
 
 ### Admin (Write)
+
 - `POST /products` - Create product
 - `PATCH /products/:id` - Update product
 - `DELETE /products/:id` - Delete product
@@ -56,7 +65,9 @@ Product catalog management with CRUD operations, category-based recommendations 
 - `DELETE /products/:id/image` - Delete product image
 
 ## DFS Traversal Implementation
+
 Uses `CategoriesService.getDescendants()` which implements DFS to traverse the category tree:
+
 ```typescript
 async getDescendants(categoryId: string): Promise<string[]> {
   // Check Redis cache first
@@ -86,15 +97,18 @@ async getDescendants(categoryId: string): Promise<string[]> {
 ```
 
 ## Cache Keys
+
 - Category tree: `category:tree:{categoryId}`
 - TTL: 3600 seconds (1 hour)
 
 ## Stock Management
+
 - NOT responsible for stock reduction (handled by order-agent)
 - Provides `updateStock()` for manual admin adjustments
 - Stock validation on all operations
 
 ## Validation Rules
+
 - SKU must be unique (DB constraint + service check)
 - Category must exist before product creation
 - Product cannot be deleted if referenced in orders
@@ -120,6 +134,7 @@ async getDescendants(categoryId: string): Promise<string[]> {
 6. Errors are logged and handled appropriately
 
 ## File Structure
+
 ```
 src/modules/products/
 ├── dto/
@@ -135,5 +150,6 @@ src/modules/products/
 ```
 
 ## Changelog
+
 - 2025-07-10: Initial implementation with DFS traversal and Redis caching
 - 2025-07-10: Added S3 image upload/delete functionality with admin-only endpoints

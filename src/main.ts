@@ -1,15 +1,24 @@
 import { NestFactory, Reflector } from '@nestjs/core';
-import { ValidationPipe, ValidationError, BadRequestException } from '@nestjs/common';
+import {
+  ValidationPipe,
+  ValidationError,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { apiReference } from '@scalar/nestjs-api-reference';
 import compression from 'compression';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { IS_PUBLIC_KEY } from './common/decorators/public.decorator';
+import { createScalarDocument } from './config/scalar.config';
+import { setupScalarEndpoints } from './config/scalar-endpoints.config';
+import { scalarThemeConfig } from './config/scalar-theme.config';
 
 /**
  * Raw body parser for webhook endpoints
- * 
+ *
  * CRITICAL: Webhook signature verification requires raw request body
  * Stripe and bKash webhooks need the unparsed body for signature verification
  */
@@ -28,6 +37,7 @@ async function rawBodyMiddleware(req: any, res: any, next: any) {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
 
   // Raw body parser for webhooks (MUST be before other middleware)
   (app as any).use(rawBodyMiddleware);
@@ -78,39 +88,22 @@ async function bootstrap() {
   // Global response interceptor
   app.useGlobalInterceptors(new TransformInterceptor());
 
-  // Swagger documentation
-  if (process.env.SWAGGER_ENABLED !== 'false') {
-    const config = new DocumentBuilder()
-      .setTitle(
-        process.env.SWAGGER_TITLE || 'Raco E-commerce API',
-      )
-      .setDescription(
-        process.env.SWAGGER_DESCRIPTION ||
-          'E-commerce Ordering & Payment System',
-      )
-      .setVersion(
-        process.env.SWAGGER_VERSION || '1.0.0',
-      )
-      .addBearerAuth()
-      .addTag('Auth', 'Authentication and authorization endpoints')
-      .addTag('Users', 'User management endpoints')
-      .addTag('Products', 'Product catalog endpoints')
-      .addTag('Categories', 'Category hierarchy endpoints')
-      .addTag('Orders', 'Order management endpoints')
-      .addTag('Payments', 'Payment processing endpoints')
-      .build();
+  // Build OpenAPI document
+  const document = SwaggerModule.createDocument(app, createScalarDocument());
 
-    const document = SwaggerModule.createDocument(app, config);
-    const swaggerPath = process.env.SWAGGER_PATH || 'api/docs';
-    SwaggerModule.setup(swaggerPath, app, document, {
-      swaggerOptions: {
-        persistAuthorization: true,
-        tagsSorter: 'alpha',
-        operationsSorter: 'alpha',
+  // Register /api-json, /postman, /api-info endpoints
+  setupScalarEndpoints(app, document);
+
+  // Mount Scalar interactive UI at /api-docs
+  app.use(
+    '/api-docs',
+    apiReference({
+      spec: {
+        content: document,
       },
-      customSiteTitle: 'Raco API Docs',
-    });
-  }
+      ...scalarThemeConfig,
+    }),
+  );
 
   // Get port from environment or use default
   const port = process.env.PORT || 4000;
@@ -120,16 +113,11 @@ async function bootstrap() {
 
   await app.listen(port);
 
-  console.log(`
-    ╔═════════════════════════════════════════════════════╗
-    ║           🚀 Raco E-commerce API Started            ║
-    ╠═════════════════════════════════════════════════════╣
-    ║  Environment: ${process.env.NODE_ENV || 'development'}                      ║
-    ║  Port: ${port}                                        ║
-    ║  API Prefix: /${apiPrefix}                          ║
-    ║  Swagger: http://localhost:${port}/${process.env.SWAGGER_PATH || 'api/docs'}    ║
-    ╚═════════════════════════════════════════════════════╝
-  `);
+  logger.log(`🚀 Running on http://localhost:${port}/api/v1`);
+  logger.log(`📚 API Docs:  http://localhost:${port}/api-docs`);
+  logger.log(`📋 Postman:  http://localhost:${port}/postman`);
+  logger.log(`📄 OpenAPI:  http://localhost:${port}/api-json`);
+  logger.log(`💚 Health:   http://localhost:${port}/api-info`);
 }
 
 bootstrap().catch((error) => {

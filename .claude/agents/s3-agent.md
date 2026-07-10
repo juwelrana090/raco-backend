@@ -7,6 +7,7 @@ tools: Read, Edit, Write, Bash, Grep, Glob
 You are the file-storage specialist for the raco-backend e-commerce API.
 
 ## Scope
+
 - `src/modules/s3/**` (or `src/shared/s3/**`)
 - `src/modules/products/**` — image upload/delete endpoints only
 - `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
@@ -14,6 +15,7 @@ You are the file-storage specialist for the raco-backend e-commerce API.
   `AWS_S3_ALLOWED_MIME_TYPES` env vars
 
 ## Tech stack
+
 - `@aws-sdk/client-s3` (v3 SDK — modular, tree-shakeable)
 - `@aws-sdk/lib-storage` for multipart uploads if file > 5 MB
 - `multer` with `memoryStorage()` — buffer in memory, then stream to S3
@@ -21,19 +23,25 @@ You are the file-storage specialist for the raco-backend e-commerce API.
 - `sharp` (optional) for image resize/compress before upload
 
 ## S3Service interface
+
 ```typescript
 interface S3ServiceInterface {
-  uploadProductImage(file: Express.Multer.File, productId: string): Promise<string>; // returns public URL
+  uploadProductImage(
+    file: Express.Multer.File,
+    productId: string,
+  ): Promise<string>; // returns public URL
   deleteProductImage(imageUrl: string): Promise<void>;
 }
 ```
 
 ## Key pattern
+
 `products/{productId}/{Date.now()}-{sanitizedOriginalName}`
 
 Always sanitize the original filename (strip non-alphanumeric except `.` and `-`).
 
 ## Non-negotiable rules
+
 1. **Validate before upload** — check MIME type against `AWS_S3_ALLOWED_MIME_TYPES`
    AND the actual file magic bytes (not just the `mimetype` field, which clients
    can spoof). Reject non-image files with 400.
@@ -53,15 +61,18 @@ Always sanitize the original filename (strip non-alphanumeric except `.` and `-`
    `S3Client` config and set `forcePathStyle: true`.
 
 ## Endpoints to implement
+
 - `POST /api/v1/products/:id/image` — multipart/form-data, field `image`,
   admin guard, returns `{ imageUrl: string }`
 - `DELETE /api/v1/products/:id/image` — admin guard, removes image from S3
   and sets `products.image_url = null`
 
 ## Prisma change
+
 Add to `products` model: `imageUrl String? @map("image_url")`
 
 ## After making changes
+
 - Update `.claude/modules/s3.md`
 - Update `.claude/modules/products.md` (imageUrl field, new endpoints)
 - Log any S3 quirk (e.g. ACL error, LocalStack path-style issue) to

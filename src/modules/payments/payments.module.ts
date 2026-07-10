@@ -24,18 +24,9 @@ import { ProviderRegistry } from './strategies/provider-registry';
  * 4. Add environment variables to .env.example
  */
 @Module({
-  imports: [
-    ConfigModule,
-    HttpModule,
-    PrismaModule,
-  ],
+  imports: [ConfigModule, HttpModule, PrismaModule],
   controllers: [PaymentsController],
-  providers: [
-    PaymentsService,
-    StripeStrategy,
-    BkashStrategy,
-    ProviderRegistry,
-  ],
+  providers: [PaymentsService, StripeStrategy, BkashStrategy, ProviderRegistry],
   exports: [PaymentsService],
 })
 export class PaymentsModule {}

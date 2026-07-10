@@ -67,14 +67,21 @@ async function main() {
     },
   });
 
-  console.log('✅ Created categories:', electronics.name, phones.name, laptops.name, accessories.name);
+  console.log(
+    '✅ Created categories:',
+    electronics.name,
+    phones.name,
+    laptops.name,
+    accessories.name,
+  );
 
   // Create sample products
   const products = [
     {
       sku: 'PHONE-001',
       name: 'iPhone 15 Pro Max',
-      description: 'Latest iPhone with A17 Pro chip, titanium design, and advanced camera system',
+      description:
+        'Latest iPhone with A17 Pro chip, titanium design, and advanced camera system',
       price: 185000, // BDT in poisha
       stock: 50,
       categoryId: phones.id,
@@ -101,7 +108,8 @@ async function main() {
     {
       sku: 'LAPTOP-002',
       name: 'Dell XPS 15',
-      description: 'Windows laptop with stunning 4K display and powerful performance',
+      description:
+        'Windows laptop with stunning 4K display and powerful performance',
       price: 285000,
       stock: 25,
       categoryId: laptops.id,

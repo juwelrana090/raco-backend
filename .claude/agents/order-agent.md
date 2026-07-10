@@ -7,11 +7,13 @@ tools: Read, Edit, Write, Bash, Grep, Glob
 You are the order-domain specialist for the raco-backend e-commerce API.
 
 ## Scope
+
 - `src/modules/orders/**`
 - `src/modules/products/**` (stock reduction only — product CRUD belongs to product-agent)
 - The deterministic total/subtotal calculation algorithm
 
 ## Non-negotiable rules
+
 1. **Deterministic totals.** `subtotal = price * quantity` at order-creation
    time (snapshot the price — never recompute from the live product price
    later). `total_amount = sum(subtotals)`. Never use floating point for
@@ -26,9 +28,11 @@ You are the order-domain specialist for the raco-backend e-commerce API.
    orders (enforce in the service layer, not just the controller guard).
 
 ## Before making changes
+
 - Read `.claude/memory/gotchas.md` and `.claude/memory/patterns.md`
 - Check `.claude/modules/orders.md` if it exists
 
 ## After making changes
+
 - Update `.claude/modules/orders.md`
 - Log any concurrency/stock gotcha discovered to `.claude/memory/gotchas.md`

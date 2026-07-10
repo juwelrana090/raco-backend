@@ -1,11 +1,15 @@
 # Orders Module — raco-backend
+
 > Generated: 2026-07-10 | Status: Production Ready
 
 ## Module Overview
+
 Handles complete order lifecycle from creation to payment confirmation with deterministic totals and safe stock reduction.
 
 ## Domain Model
+
 ### Order Entity
+
 - **Status Machine**: `pending → paid | canceled` (strict transitions only)
 - **Ownership**: Each order belongs to exactly one user
 - **Deterministic Totals**: `total = sum(item.price * item.quantity)` (integer arithmetic only)
@@ -16,6 +20,7 @@ Handles complete order lifecycle from creation to payment confirmation with dete
   - `markAsCanceled()`: throws if not PENDING, returns CANCELED
 
 ### OrderItem Entity
+
 - **Price Snapshots**: Captures product price at order creation time
 - **Deterministic Subtotal**: `subtotal = price * quantity` (pure integer arithmetic)
 - **Key Methods**:
@@ -25,6 +30,7 @@ Handles complete order lifecycle from creation to payment confirmation with dete
 ## Critical Algorithms
 
 ### Order Totals Computation (§2.2.3)
+
 ```typescript
 // 1. Snapshot price on each OrderItem at creation time
 price = product.price // stored in minor units (cents/poisha)
@@ -37,17 +43,20 @@ totalAmount = sum(item.subtotal for item in items)
 ```
 
 **Properties:**
+
 - Pure/deterministic: same inputs → same output every time
 - Uses only integer arithmetic (minor units)
 - No floating point operations
 - Price snapshots prevent retroactive price changes
 
 ### Stock Reduction with Conditional Updates (§2.2.3)
+
 **When:** Only after successful payment confirmation (never at order creation)
 
 **Where:** Inside same database transaction that marks order `paid`
 
 **Algorithm:**
+
 ```typescript
 // 1. For each order item, perform conditional update
 UPDATE products
@@ -62,12 +71,14 @@ WHERE id = :productId AND stock >= :quantity
 ```
 
 **Why This Works:**
+
 - Prevents overselling from concurrent orders
 - Row-level lock + conditional check ensures atomicity
 - Transaction is all-or-nothing (no partial stock reduction)
 - Only paid orders reduce stock (pending/canceled orders don't)
 
 ## API Endpoints
+
 - `POST /orders` - Create order from cart (status: pending, no stock reduction)
 - `GET /orders/:id` - Get order details (ownership check enforced)
 - `GET /orders` - Get current user's orders (implicit ownership)
@@ -75,6 +86,7 @@ WHERE id = :productId AND stock >= :quantity
 - `DELETE /orders/:id` - Cancel order (only if pending)
 
 ## Key Features
+
 1. **Deterministic Totals**: Same cart always produces same total
 2. **Safe Stock Reduction**: Conditional updates prevent overselling
 3. **Price Snapshots**: Orders immune to product price changes
@@ -83,6 +95,7 @@ WHERE id = :productId AND stock >= :quantity
 6. **Transaction Safety**: Payment confirmation is atomic
 
 ## Security & Validation
+
 - All endpoints require JWT authentication
 - Ownership checks in service layer (not just guards)
 - Stock availability checked at order creation (read-only)
@@ -90,6 +103,7 @@ WHERE id = :productId AND stock >= :quantity
 - Validation ensures no negative quantities or prices
 
 ## Integration Points
+
 - **PrismaService**: Database operations with transactions
 - **@CurrentUser('id')**: Current user context from JWT
 - **JwtGuard**: Protects all endpoints
@@ -97,6 +111,7 @@ WHERE id = :productId AND stock >= :quantity
 - **Payment Module**: Handles webhook callbacks for payment confirmation
 
 ## File Structure
+
 ```
 src/modules/orders/
 ├── dto/
@@ -115,6 +130,7 @@ src/modules/orders/
 ```
 
 ## Non-Negotiable Rules Compliance
+
 ✅ **Deterministic totals**: `subtotal = price * quantity` at order time
 ✅ **Integer minor units only**: No floating point for money
 ✅ **Stock reduction after payment**: Never at order creation
@@ -124,6 +140,7 @@ src/modules/orders/
 ✅ **Transaction safety**: Payment confirmation is atomic
 
 ## Testing Strategy
+
 - Unit tests for Order/OrderItem domain classes
 - Integration tests for order creation flow
 - Transaction rollback tests for failed payments
@@ -131,6 +148,7 @@ src/modules/orders/
 - Ownership enforcement tests
 
 ## Known Gotchas
+
 - Stock availability check at order creation is read-only (no reduction)
 - Payment confirmation must be in transaction with stock updates
 - Conditional stock update returns count; 0 means insufficient stock
@@ -138,4 +156,5 @@ src/modules/orders/
 - Order totals are immutable once created (price snapshots)
 
 ## Confidence Level
+
 **HIGH** — Production-ready, fully compliant with non-negotiable rules

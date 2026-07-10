@@ -30,7 +30,9 @@
       "Bash(pnpm add *)",
       "Read(//c/Dev/Roco AI/raco-backend/src/modules/payments/**)",
       "Read(//c/Dev/Roco AI/raco-backend/src/modules/payments/interfaces/**)",
-      "Read(//c/Dev/Roco AI/raco-backend/**)"
+      "Read(//c/Dev/Roco AI/raco-backend/**)",
+      "mcp__filesystem__list_directory",
+      "mcp__filesystem__list_allowed_directories"
     ],
     "deny": [
       "Write(~/**)",

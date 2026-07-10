@@ -1,4 +1,5 @@
 # Post Task Checklist
+
 > ⚠️ Complete every item after finishing any task.
 
 - [ ] All rules from .claude/memory/rules.md followed

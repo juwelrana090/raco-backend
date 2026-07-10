@@ -1,10 +1,19 @@
-import { Injectable, Logger, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { PaymentProvider, PaymentStatus } from '@prisma/client';
 import { Payment } from '../entities/payment.entity';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
-import { ProviderPaymentHandle, PaymentResult, WebhookEvent } from '../dto/provider-payment-handle.dto';
+import {
+  ProviderPaymentHandle,
+  PaymentResult,
+  WebhookEvent,
+} from '../dto/provider-payment-handle.dto';
 import { ProviderRegistry } from '../strategies/provider-registry';
 
 /**
@@ -57,7 +66,9 @@ export class PaymentsService {
     });
 
     if (existingPayment) {
-      throw new ConflictException(`Payment already exists for this order with ${provider} provider`);
+      throw new ConflictException(
+        `Payment already exists for this order with ${provider} provider`,
+      );
     }
 
     // Get strategy and create payment
@@ -77,7 +88,9 @@ export class PaymentsService {
       },
     });
 
-    this.logger.log(`Created payment: ${payment.id} for order: ${orderId} with provider: ${provider}`);
+    this.logger.log(
+      `Created payment: ${payment.id} for order: ${orderId} with provider: ${provider}`,
+    );
 
     return Payment.fromPrisma(payment);
   }
@@ -94,7 +107,11 @@ export class PaymentsService {
    * @param rawBody - Raw request body
    * @param signature - Request signature
    */
-  async processWebhook(provider: PaymentProvider, rawBody: Buffer, signature: string): Promise<void> {
+  async processWebhook(
+    provider: PaymentProvider,
+    rawBody: Buffer,
+    signature: string,
+  ): Promise<void> {
     this.logger.log(`Processing webhook for provider: ${provider}`);
 
     // Verify webhook signature
@@ -120,8 +137,13 @@ export class PaymentsService {
     }
 
     // IDEMPOTENCY: Skip if already in final state (success/failed)
-    if (existingPayment.status === PaymentStatus.SUCCESS || existingPayment.status === PaymentStatus.FAILED) {
-      this.logger.log(`Payment ${existingPayment.id} already in final state: ${existingPayment.status}. Skipping webhook processing.`);
+    if (
+      existingPayment.status === PaymentStatus.SUCCESS ||
+      existingPayment.status === PaymentStatus.FAILED
+    ) {
+      this.logger.log(
+        `Payment ${existingPayment.id} already in final state: ${existingPayment.status}. Skipping webhook processing.`,
+      );
       return;
     }
 
@@ -148,7 +170,9 @@ export class PaymentsService {
           data: { status: 'PAID' }, // Prisma enum
         });
 
-        this.logger.log(`Payment ${existingPayment.id} succeeded. Order ${existingPayment.orderId} marked as PAID.`);
+        this.logger.log(
+          `Payment ${existingPayment.id} succeeded. Order ${existingPayment.orderId} marked as PAID.`,
+        );
       }
 
       // If payment failed, mark order as canceled
@@ -158,11 +182,15 @@ export class PaymentsService {
           data: { status: 'CANCELED' }, // Prisma enum
         });
 
-        this.logger.log(`Payment ${existingPayment.id} failed. Order ${existingPayment.orderId} marked as CANCELED.`);
+        this.logger.log(
+          `Payment ${existingPayment.id} failed. Order ${existingPayment.orderId} marked as CANCELED.`,
+        );
       }
     });
 
-    this.logger.log(`Webhook processed successfully for payment: ${existingPayment.id}`);
+    this.logger.log(
+      `Webhook processed successfully for payment: ${existingPayment.id}`,
+    );
   }
 
   /**
@@ -204,7 +232,9 @@ export class PaymentsService {
   /**
    * Map provider payment status to internal PaymentStatus
    */
-  private mapPaymentStatus(status: 'pending' | 'success' | 'failed'): PaymentStatus {
+  private mapPaymentStatus(
+    status: 'pending' | 'success' | 'failed',
+  ): PaymentStatus {
     switch (status) {
       case 'success':
         return PaymentStatus.SUCCESS;

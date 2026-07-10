@@ -3,6 +3,7 @@
 Mark current task as done, then review quality.
 
 ## Finish
+
 1. Read files in .claude/tasks/inprogress/
 2. Identify task from context or ask
 3. Get developer name from .claude/settings.local.json or git config
@@ -12,10 +13,11 @@ Mark current task as done, then review quality.
 7. Suggest git commit message for team
 
 ## Auto-review
+
 8. Read .claude/skills/_base.md ← rules + patterns to check against
 9. Check rules from .claude/memory/rules.md were followed
 10. Check correct patterns were used
 11. Check error handling is correct
-Report: ✅ Pass / ❌ Fail per check. Flag any new gotchas or patterns to log.
+    Report: ✅ Pass / ❌ Fail per check. Flag any new gotchas or patterns to log.
 
 Confirm task moved. Remind: commit and push so team sees it is done.

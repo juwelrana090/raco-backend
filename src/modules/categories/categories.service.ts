@@ -57,7 +57,9 @@ export class CategoriesService {
       });
 
       if (existingRoot) {
-        throw new ConflictException('Root category with this name already exists');
+        throw new ConflictException(
+          'Root category with this name already exists',
+        );
       }
     }
 
@@ -202,7 +204,10 @@ export class CategoriesService {
   /**
    * Update a category
    */
-  async update(id: string, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
+  async update(
+    id: string,
+    updateCategoryDto: UpdateCategoryDto,
+  ): Promise<Category> {
     const { name, description, parentId } = updateCategoryDto;
 
     // Check if category exists
@@ -227,9 +232,7 @@ export class CategoriesService {
       // Prevent creating circular reference
       const descendantIds = await this.getDescendants(id);
       if (descendantIds.includes(parentId)) {
-        throw new BadRequestException(
-          'Cannot set a descendant as the parent',
-        );
+        throw new BadRequestException('Cannot set a descendant as the parent');
       }
     }
 

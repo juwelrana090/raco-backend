@@ -1,4 +1,8 @@
-import { Payment as PrismaPayment, PaymentStatus, PaymentProvider } from '@prisma/client';
+import {
+  Payment as PrismaPayment,
+  PaymentStatus,
+  PaymentProvider,
+} from '@prisma/client';
 
 export class Payment implements PrismaPayment {
   id: string;

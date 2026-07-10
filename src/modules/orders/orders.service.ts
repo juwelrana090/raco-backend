@@ -35,7 +35,7 @@ export class OrdersService {
     const { items } = createOrderDto;
 
     // Step 1: Fetch all products and validate
-    const productIds = items.map(item => item.productId);
+    const productIds = items.map((item) => item.productId);
     const products = await this.prisma.product.findMany({
       where: { id: { in: productIds } },
     });
@@ -45,7 +45,7 @@ export class OrdersService {
     }
 
     // Step 2: Validate stock availability (read-only check - no reduction yet)
-    const productMap = new Map(products.map(p => [p.id, p]));
+    const productMap = new Map(products.map((p) => [p.id, p]));
     for (const item of items) {
       const product = productMap.get(item.productId);
       if (!product) {
@@ -53,22 +53,26 @@ export class OrdersService {
       }
       if (product.stock < item.quantity) {
         throw new ConflictException(
-          `Insufficient stock for product ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}`
+          `Insufficient stock for product ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}`,
         );
       }
     }
 
     // Step 3: Create order items with price snapshots
-    const orderItemsData = items.map(item => {
+    const orderItemsData = items.map((item) => {
       const product = productMap.get(item.productId)!;
-      return OrderItem.createForOrder(item.productId, item.quantity, product.price);
+      return OrderItem.createForOrder(
+        item.productId,
+        item.quantity,
+        product.price,
+      );
     });
 
     // Step 4: Calculate total amount deterministically
     // subtotal = price * quantity (integer arithmetic)
     // total = sum(all subtotals)
     const totalAmount = orderItemsData.reduce((total, item) => {
-      return total + (item.price * item.quantity);
+      return total + item.price * item.quantity;
     }, 0);
 
     // Step 5: Create order with items in a transaction
@@ -115,7 +119,9 @@ export class OrdersService {
 
     // Enforce ownership: users can only read their own orders
     if (order.userId !== userId) {
-      throw new ForbiddenException('You do not have permission to access this order');
+      throw new ForbiddenException(
+        'You do not have permission to access this order',
+      );
     }
 
     return {
@@ -141,7 +147,7 @@ export class OrdersService {
     return {
       success: true,
       message: 'Orders retrieved successfully',
-      data: orders.map(order => Order.fromPrisma(order).toJSON()),
+      data: orders.map((order) => Order.fromPrisma(order).toJSON()),
     };
   }
 
@@ -154,7 +160,11 @@ export class OrdersService {
    * 3. Create payment record with PENDING status
    * 4. Return payment details for client to complete payment
    */
-  async checkoutOrder(userId: string, orderId: string, checkoutDto: CheckoutOrderDto) {
+  async checkoutOrder(
+    userId: string,
+    orderId: string,
+    checkoutDto: CheckoutOrderDto,
+  ) {
     const { provider } = checkoutDto;
 
     // Fetch order with items
@@ -169,13 +179,15 @@ export class OrdersService {
 
     // Enforce ownership
     if (order.userId !== userId) {
-      throw new ForbiddenException('You do not have permission to access this order');
+      throw new ForbiddenException(
+        'You do not have permission to access this order',
+      );
     }
 
     // Check order status
     if (order.status !== OrderStatus.PENDING) {
       throw new BadRequestException(
-        `Order cannot be checked out. Current status: ${order.status}`
+        `Order cannot be checked out. Current status: ${order.status}`,
       );
     }
 
@@ -227,7 +239,9 @@ export class OrdersService {
 
     // Enforce ownership
     if (order.userId !== userId) {
-      throw new ForbiddenException('You do not have permission to cancel this order');
+      throw new ForbiddenException(
+        'You do not have permission to cancel this order',
+      );
     }
 
     // Create order entity to validate state transition
@@ -236,7 +250,7 @@ export class OrdersService {
     // Check if order can be cancelled
     if (!orderEntity.canBeCancelled()) {
       throw new BadRequestException(
-        `Order cannot be cancelled. Current status: ${order.status}`
+        `Order cannot be cancelled. Current status: ${order.status}`,
       );
     }
 
@@ -294,13 +308,13 @@ export class OrdersService {
 
       if (payment.status !== PaymentStatus.PENDING) {
         throw new BadRequestException(
-          `Payment is not in PENDING status. Current status: ${payment.status}`
+          `Payment is not in PENDING status. Current status: ${payment.status}`,
         );
       }
 
       if (payment.order.status !== OrderStatus.PENDING) {
         throw new BadRequestException(
-          `Order is not in PENDING status. Current status: ${payment.order.status}`
+          `Order is not in PENDING status. Current status: ${payment.order.status}`,
         );
       }
 
@@ -329,8 +343,8 @@ export class OrdersService {
 
           throw new ConflictException(
             `Insufficient stock for product ${product?.name}. ` +
-            `Concurrent order may have purchased the last items. ` +
-            `Payment has been rolled back.`
+              `Concurrent order may have purchased the last items. ` +
+              `Payment has been rolled back.`,
           );
         }
       }

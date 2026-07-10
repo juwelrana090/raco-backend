@@ -1,6 +1,7 @@
 > ⚠️ PROJECT SCOPED: Save to .claude/tasks/eod/ only.
 
 Session ending:
+
 1. List all tasks completed this session
 2. List all files changed
 3. List all memory files updated

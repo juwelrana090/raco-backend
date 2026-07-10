@@ -54,7 +54,10 @@ export class UsersController {
     type: UserResponseDto,
   })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
-  @ApiResponse({ status: HttpStatus.CONFLICT, description: 'Email already in use' })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'Email already in use',
+  })
   async updateProfile(
     @Request() req,
     @Body() updateUserDto: UpdateUserDto,

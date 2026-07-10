@@ -35,7 +35,10 @@ export class AuthController {
     status: HttpStatus.CREATED,
     description: 'User registered successfully',
   })
-  @ApiResponse({ status: HttpStatus.CONFLICT, description: 'Email already exists' })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'Email already exists',
+  })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input' })
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
@@ -51,7 +54,10 @@ export class AuthController {
     status: HttpStatus.OK,
     description: 'Login successful',
   })
-  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid credentials' })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid credentials',
+  })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
@@ -66,7 +72,10 @@ export class AuthController {
     status: HttpStatus.OK,
     description: 'Token refreshed successfully',
   })
-  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid or expired refresh token' })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid or expired refresh token',
+  })
   async refresh(@Body() refreshDto: RefreshDto) {
     return this.authService.refresh(refreshDto);
   }
@@ -127,7 +136,10 @@ export class AuthController {
     status: HttpStatus.OK,
     description: 'Token is valid',
   })
-  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid or expired token' })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid or expired token',
+  })
   async validate(@Request() req) {
     return {
       success: true,

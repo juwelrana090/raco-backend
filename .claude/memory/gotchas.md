@@ -1,41 +1,49 @@
 # Gotchas
+
 > ⚠️ PROJECT SCOPED: This file lives in .claude/memory/ only.
 > Run /r-memory-scan to auto-fill from codebase.
 
 [Gotchas will be added here as they are discovered]
 
 ## Template
+
 #### [Module] — [Title]
+
 - **What Happens**:
 - **Why**:
 - **How to Avoid**:
 - **Discovered**:
 
 #### Orders — Stock Reduction Timing
+
 - **What Happens**: If you reduce stock at order creation time, you'll have "phantom inventory" - orders that are created but never paid, yet still lock up stock
 - **Why**: Users can create orders without completing payment, causing artificial stockouts
 - **How to Avoid**: Only reduce stock inside the transaction that marks the order as `paid`. Never at order creation.
 - **Discovered**: 2026-07-10
 
 #### Orders — Overselling from Concurrent Orders
+
 - **What Happens**: Without conditional updates (`WHERE stock >= quantity`), concurrent orders can both read available stock=1, then both try to reduce to 0, resulting in stock=-1 (overselling)
 - **Why**: Race condition between stock check and stock update
 - **How to Avoid**: Use conditional update: `UPDATE products SET stock = stock - :qty WHERE id = :id AND stock >= :qty`. If affected rows = 0, rollback payment transaction.
 - **Discovered**: 2026-07-10
 
 #### Orders — Price Changes Affect Old Orders
+
 - **What Happens**: If you calculate order totals from live product prices, changing a product's price retroactively changes historical order totals
 - **Why**: Order totals become non-deterministic and accounting breaks
 - **How to Avoid**: Always snapshot product price at order creation time in OrderItem entity. Calculate totals only from snapshots.
 - **Discovered**: 2026-07-10
 
 #### Orders — Floating Point Math for Money
+
 - **What Happens**: Using floating point for money calculations (e.g., `19.99 * 3`) produces rounding errors like `59.97000000000001`
 - **Why**: IEEE 754 floating point cannot represent some decimals exactly
 - **How to Avoid**: Use integer minor units (cents/poisha) only: `1999 * 3 = 5997`. Never use floating point for money.
 - **Discovered**: 2026-07-10
 
 #### Orders — Payment Confirmation Not Atomic
+
 - **What Happens**: If payment confirmation and stock reduction are not in the same transaction, you can have paid orders without stock reduction (overselling) or stock reduction without payment confirmation (inventory locked but no payment)
 - **Why**: Partial failure scenarios where one operation succeeds but the other fails
 - **How to Avoid**: Always wrap payment confirmation, order status update, and stock updates in a single database transaction. All must succeed or all must fail.
@@ -44,11 +52,13 @@
 ## Authentication & Security
 
 #### Auth — JWT Library Type Compatibility
+
 - **What Happens**: TypeScript errors with `expiresIn` type in JWT signAsync
 - **Why**: JWT library expects specific types but NestJS JWT service uses string
 - **How to Avoid**: Use type assertion `as any` for expiresIn values when passing to signAsync
 - **Discovered**: 2026-07-10 during auth module implementation
 - **Example**:
+
 ```typescript
 return this.jwtService.signAsync(payload, {
   expiresIn: expiresIn as any, // Type assertion for JWT library compatibility
@@ -56,11 +66,13 @@ return this.jwtService.signAsync(payload, {
 ```
 
 #### Auth — Prisma User Model Null vs Undefined
+
 - **What Happens**: Type mismatch when converting Prisma User (null) to DTO (undefined)
 - **Why**: Prisma uses `null` for optional fields, but DTOs expect `undefined`
 - **How to Avoid**: Use nullish coalescing `??` instead of logical OR `||` when converting
 - **Discovered**: 2026-07-10 during user service implementation
 - **Example**:
+
 ```typescript
 return {
   name: userJson.name ?? undefined, // NOT: name: userJson.name || undefined
@@ -68,11 +80,13 @@ return {
 ```
 
 #### Auth — User Entity Password Destructuring
+
 - **What Happens**: Cannot destructure `password` from toJSON() return type
 - **Why**: TypeScript excludes password from the return type definition
 - **How to Avoid**: Manually construct DTO without password instead of destructuring
 - **Discovered**: 2026-07-10 during user service implementation
 - **Example**:
+
 ```typescript
 // WRONG - TypeScript error
 const { password, ...userDto } = user.toJSON();
@@ -87,11 +101,13 @@ return {
 ```
 
 #### Auth — Refresh Token Secret Not Found
+
 - **What Happens**: Application crashes if JWT_REFRESH_SECRET is not set
 - **Why**: JWT strategies throw errors during initialization if secret is undefined
 - **How to Avoid**: Always validate JWT secrets exist at module initialization
 - **Discovered**: 2026-07-10 during auth module setup
 - **Example**:
+
 ```typescript
 const secret = config.get<string>('JWT_REFRESH_SECRET');
 if (!secret) {
@@ -100,6 +116,7 @@ if (!secret) {
 ```
 
 #### Auth — Password Never in API Responses
+
 - **What Happens**: Password accidentally exposed in API responses
 - **Why**: Forgetting to exclude password at DTO level
 - **How to Avoid**: Always use dedicated response DTOs that don't include password field, not just by convention
@@ -107,6 +124,7 @@ if (!secret) {
 - **Security Impact**: Critical - password hashes must never be exposed
 
 #### Auth — Email Uniqueness at DB Level
+
 - **What Happens**: Duplicate emails in database if only DTO validation is used
 - **Why**: Race conditions or direct database writes can bypass application validation
 - **How to Avoid**: Always enforce email uniqueness at Prisma schema level with `@unique`

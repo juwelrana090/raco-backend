@@ -1,4 +1,8 @@
-import { Order as PrismaOrder, OrderStatus, OrderItem as PrismaOrderItem } from '@prisma/client';
+import {
+  Order as PrismaOrder,
+  OrderStatus,
+  OrderItem as PrismaOrderItem,
+} from '@prisma/client';
 import { OrderItem } from './order-item.entity';
 
 export class Order implements PrismaOrder {
@@ -21,7 +25,7 @@ export class Order implements PrismaOrder {
     this.updatedAt = data.updatedAt;
 
     // Convert items to OrderItem entities
-    this.items = data.items?.map(item => OrderItem.fromPrisma(item));
+    this.items = data.items?.map((item) => OrderItem.fromPrisma(item));
   }
 
   /**
@@ -74,7 +78,9 @@ export class Order implements PrismaOrder {
    */
   markAsPaid(): OrderStatus {
     if (!this.canBePaid()) {
-      throw new Error(`Cannot mark order as ${OrderStatus.PAID}. Current status: ${this.status}`);
+      throw new Error(
+        `Cannot mark order as ${OrderStatus.PAID}. Current status: ${this.status}`,
+      );
     }
     return OrderStatus.PAID;
   }
@@ -84,7 +90,9 @@ export class Order implements PrismaOrder {
    */
   markAsCanceled(): OrderStatus {
     if (!this.canBeCancelled()) {
-      throw new Error(`Cannot mark order as ${OrderStatus.CANCELED}. Current status: ${this.status}`);
+      throw new Error(
+        `Cannot mark order as ${OrderStatus.CANCELED}. Current status: ${this.status}`,
+      );
     }
     return OrderStatus.CANCELED;
   }
@@ -105,7 +113,7 @@ export class Order implements PrismaOrder {
       userId: this.userId,
       totalAmount: this.totalAmount,
       status: this.status,
-      items: this.items?.map(item => item.toJSON()),
+      items: this.items?.map((item) => item.toJSON()),
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

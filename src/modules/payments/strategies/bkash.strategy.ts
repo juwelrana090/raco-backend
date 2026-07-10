@@ -4,7 +4,11 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { PaymentProvider, Order as PrismaOrder } from '@prisma/client';
 import { PaymentProviderStrategy } from '../interfaces/payment-provider-strategy.interface';
-import type { ProviderPaymentHandle, PaymentResult, WebhookEvent } from '../dto/provider-payment-handle.dto';
+import type {
+  ProviderPaymentHandle,
+  PaymentResult,
+  WebhookEvent,
+} from '../dto/provider-payment-handle.dto';
 
 @Injectable()
 export class BkashStrategy implements PaymentProviderStrategy {
@@ -89,9 +93,7 @@ export class BkashStrategy implements PaymentProviderStrategy {
     }
   }
 
-  async confirmPayment(
-    handle: ProviderPaymentHandle,
-  ): Promise<PaymentResult> {
+  async confirmPayment(handle: ProviderPaymentHandle): Promise<PaymentResult> {
     try {
       this.logger.log(`Confirming bKash payment: ${handle.providerPaymentId}`);
 
@@ -119,14 +121,20 @@ export class BkashStrategy implements PaymentProviderStrategy {
 
       this.logger.log(`bKash payment status: ${JSON.stringify(paymentData)}`);
 
-      if (paymentData.statusCode === '0000' && paymentData.transactionStatus === 'Completed') {
+      if (
+        paymentData.statusCode === '0000' &&
+        paymentData.transactionStatus === 'Completed'
+      ) {
         return {
           success: true,
           providerTxnId: paymentData.trxID,
           rawResponse: paymentData,
           status: 'success',
         };
-      } else if (paymentData.transactionStatus === 'Failed' || paymentData.transactionStatus === 'Cancelled') {
+      } else if (
+        paymentData.transactionStatus === 'Failed' ||
+        paymentData.transactionStatus === 'Cancelled'
+      ) {
         return {
           success: false,
           providerTxnId: paymentData.trxID || null,
@@ -177,13 +185,16 @@ export class BkashStrategy implements PaymentProviderStrategy {
 
       const paymentData = response.data;
 
-      this.logger.log(`bKash payment query result: ${JSON.stringify(paymentData)}`);
+      this.logger.log(
+        `bKash payment query result: ${JSON.stringify(paymentData)}`,
+      );
 
       return {
         success: paymentData.transactionStatus === 'Completed',
         providerTxnId: paymentData.trxID,
         rawResponse: paymentData,
-        status: paymentData.transactionStatus === 'Completed' ? 'success' : 'pending',
+        status:
+          paymentData.transactionStatus === 'Completed' ? 'success' : 'pending',
       };
     } catch (error) {
       this.logger.error(`bKash payment query error: ${error.message}`);
@@ -194,7 +205,10 @@ export class BkashStrategy implements PaymentProviderStrategy {
     }
   }
 
-  async verifyWebhook(rawBody: Buffer, signature: string): Promise<WebhookEvent> {
+  async verifyWebhook(
+    rawBody: Buffer,
+    signature: string,
+  ): Promise<WebhookEvent> {
     try {
       this.logger.log('Verifying bKash webhook/callback');
 
@@ -212,10 +226,7 @@ export class BkashStrategy implements PaymentProviderStrategy {
       };
     } catch (error) {
       this.logger.error(`bKash webhook verification error: ${error.message}`);
-      throw new HttpException(
-        'Invalid bKash webhook',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new HttpException('Invalid bKash webhook', HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -245,7 +256,9 @@ export class BkashStrategy implements PaymentProviderStrategy {
       const tokenData = response.data;
 
       if (tokenData.statusCode !== '0000') {
-        throw new Error(`bKash token generation failed: ${tokenData.statusMessage}`);
+        throw new Error(
+          `bKash token generation failed: ${tokenData.statusMessage}`,
+        );
       }
 
       return tokenData.id_token;

@@ -102,17 +102,22 @@ Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
 This project uses a shared Claude Code memory system in `.claude/`
 
 ### First time setup
+
 ```bash
 npm install -g @anthropic-ai/claude-code
 claude
 ```
+
 Then add your name to `.claude/settings.local.json`:
+
 ```json
 { "developerName": "Your Name Here" }
 ```
+
 Then run `/r-memory-scan` to build your memory.
 
 ### Daily workflow
+
 ```
 /r-start              → load memory, see project status
 /r-todo               → see all pending tasks
@@ -125,8 +130,8 @@ Then run `/r-memory-scan` to build your memory.
 ```
 
 ### Team rules
+
 - Commit all `.claude/` changes after tasks
 - Only `settings.local.json` and `tasks/eod/` are personal/gitignored
 - Add tasks for teammates with `/r-add-task`
 - Update module memory after touching any module
-

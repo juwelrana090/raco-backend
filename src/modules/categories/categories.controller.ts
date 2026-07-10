@@ -58,7 +58,10 @@ export class CategoriesController {
     description: 'Category retrieved successfully',
     type: CategoryResponseDto,
   })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Category not found' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Category not found',
+  })
   @ApiParam({ name: 'id', type: String })
   async findOne(@Param('id') id: string): Promise<CategoryResponseDto> {
     const category = await this.categoriesService.findOne(id);
@@ -76,7 +79,10 @@ export class CategoriesController {
     description: 'Products retrieved successfully',
     type: Object,
   })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Category not found' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Category not found',
+  })
   @ApiParam({ name: 'id', type: String })
   async getProducts(@Param('id') id: string) {
     return this.categoriesService.getProducts(id);
@@ -96,11 +102,22 @@ export class CategoriesController {
     type: CategoryResponseDto,
   })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input' })
-  @ApiResponse({ status: HttpStatus.CONFLICT, description: 'Category name already exists' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Parent category not found' })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'Category name already exists',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Parent category not found',
+  })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Admin access required' })
-  async create(@Body() createCategoryDto: CreateCategoryDto): Promise<CategoryResponseDto> {
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Admin access required',
+  })
+  async create(
+    @Body() createCategoryDto: CreateCategoryDto,
+  ): Promise<CategoryResponseDto> {
     const category = await this.categoriesService.create(createCategoryDto);
     return category.toFlatJSON() as CategoryResponseDto;
   }
@@ -118,11 +135,23 @@ export class CategoriesController {
     description: 'Category updated successfully',
     type: CategoryResponseDto,
   })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input or circular reference' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Category not found' })
-  @ApiResponse({ status: HttpStatus.CONFLICT, description: 'Category name already exists' })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid input or circular reference',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Category not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'Category name already exists',
+  })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Admin access required' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Admin access required',
+  })
   @ApiParam({ name: 'id', type: String })
   async update(
     @Param('id') id: string,
@@ -141,11 +170,23 @@ export class CategoriesController {
   @Roles('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a category (Admin only)' })
-  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Category deleted successfully' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Category not found' })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Category has subcategories or products' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Category deleted successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Category not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Category has subcategories or products',
+  })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Admin access required' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Admin access required',
+  })
   @ApiParam({ name: 'id', type: String })
   async remove(@Param('id') id: string): Promise<void> {
     await this.categoriesService.remove(id);

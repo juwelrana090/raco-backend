@@ -1,4 +1,5 @@
 # Project Context
+
 > ⚠️ PROJECT SCOPED: This file lives in .claude/memory/ only.
 > Run /r-memory-scan to auto-fill from codebase.
 

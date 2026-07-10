@@ -39,7 +39,11 @@ export class OrderItem implements PrismaOrderItem {
    * Create OrderItem data for Prisma create operation
    * This captures the price snapshot at order creation time
    */
-  static createForOrder(productId: string, quantity: number, price: number): Omit<PrismaOrderItem, 'id' | 'orderId' | 'createdAt'> {
+  static createForOrder(
+    productId: string,
+    quantity: number,
+    price: number,
+  ): Omit<PrismaOrderItem, 'id' | 'orderId' | 'createdAt'> {
     return {
       productId,
       quantity,

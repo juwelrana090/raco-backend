@@ -23,7 +23,10 @@ export class User implements PrismaUser {
   /**
    * Hash a password using bcrypt
    */
-  static async hashPassword(password: string, saltRounds: number = 12): Promise<string> {
+  static async hashPassword(
+    password: string,
+    saltRounds: number = 12,
+  ): Promise<string> {
     return bcrypt.hash(password, saltRounds);
   }
 

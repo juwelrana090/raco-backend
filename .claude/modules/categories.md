@@ -1,9 +1,11 @@
 # Categories Module
 
 ## Purpose
+
 Category hierarchy management with DFS traversal for product recommendations and Redis caching.
 
 ## Architecture
+
 - **Domain Entity**: `Category` class wraps Prisma operations
 - **Service Layer**: Business logic with DFS traversal implementation
 - **Controller**: RESTful endpoints with tree structure support
@@ -12,6 +14,7 @@ Category hierarchy management with DFS traversal for product recommendations and
 ## Key Features
 
 ### 1. Category CRUD
+
 - Create category with optional parent (tree structure)
 - Get category tree (nested structure)
 - Get category by ID
@@ -19,39 +22,47 @@ Category hierarchy management with DFS traversal for product recommendations and
 - Delete category (with children/products validation)
 
 ### 2. DFS Traversal
+
 - Implements DFS (not BFS) per assessment requirement §2.2.5
 - Caches descendant category IDs in Redis
 - Used for product recommendations and category product queries
 - Recursive invalidation on hierarchy changes
 
 ### 3. Cache Invalidation
+
 - Invalidates cache on category create/update/delete
 - Recursively invalidates parent caches
 - Pattern-based invalidation for bulk operations
 
 ## Authorization
+
 - **Public**: GET endpoints (tree, details, products)
 - **Admin only**: POST, PATCH, DELETE endpoints
 - Uses `@Roles('ADMIN')` decorator with AdminGuard
 
 ## Dependencies
+
 - `PrismaService`: Database operations
 - `RedisService`: Caching layer
 
 ## API Endpoints
 
 ### Public (Read)
+
 - `GET /categories` - Get category tree (nested structure)
 - `GET /categories/:id` - Get category details
 - `GET /categories/:id/products` - Get products in category + descendants
 
 ### Admin (Write)
+
 - `POST /categories` - Create category
 - `PATCH /categories/:id` - Update category
 - `DELETE /categories/:id` - Delete category
 
 ## DFS Traversal Implementation
+
 Core DFS implementation for category tree traversal:
+
 ```typescript
 async getDescendants(categoryId: string): Promise<string[]> {
   // Check Redis cache first
@@ -84,7 +95,9 @@ async getDescendants(categoryId: string): Promise<string[]> {
 ```
 
 ## Self-Relation Implementation
+
 Uses `parentId` foreign key for tree structure (not closure table):
+
 ```prisma
 model Category {
   id       String    @id @default(uuid())
@@ -96,7 +109,9 @@ model Category {
 ```
 
 ## Tree Building
+
 Converts flat Prisma results to nested structure:
+
 ```typescript
 async getTree(): Promise<Category[]> {
   const categories = await this.prisma.category.findMany();
@@ -125,10 +140,12 @@ async getTree(): Promise<Category[]> {
 ```
 
 ## Cache Keys
+
 - Category tree: `category:tree:{categoryId}`
 - TTL: 3600 seconds (1 hour)
 
 ## Validation Rules
+
 - Category name must be unique at same level (siblings)
 - Cannot create circular references in hierarchy
 - Cannot delete category with subcategories
@@ -136,6 +153,7 @@ async getTree(): Promise<Category[]> {
 - Cannot set self as parent
 
 ## File Structure
+
 ```
 src/modules/categories/
 ├── dto/
@@ -150,4 +168,5 @@ src/modules/categories/
 ```
 
 ## Changelog
+
 - 2025-07-10: Initial implementation with DFS traversal and Redis caching

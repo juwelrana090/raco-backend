@@ -1,4 +1,5 @@
 # Pre Task Checklist
+
 > ⚠️ Run every item before starting any task.
 
 - [ ] Re-read CLAUDE.md

@@ -54,7 +54,9 @@ export class Tokens {
     const secret = this.config.get<string>('JWT_REFRESH_SECRET');
 
     if (!secret) {
-      throw new Error('JWT_REFRESH_SECRET is not defined in environment variables');
+      throw new Error(
+        'JWT_REFRESH_SECRET is not defined in environment variables',
+      );
     }
 
     const token = await this.jwtService.signAsync(payload, {
@@ -100,7 +102,9 @@ export class Tokens {
     const secret = this.config.get<string>('JWT_REFRESH_SECRET');
 
     if (!secret) {
-      throw new Error('JWT_REFRESH_SECRET is not defined in environment variables');
+      throw new Error(
+        'JWT_REFRESH_SECRET is not defined in environment variables',
+      );
     }
 
     try {

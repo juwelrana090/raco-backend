@@ -1,11 +1,13 @@
 # Auth Module - Complete Authentication System
 
 ## Overview
+
 Complete authentication module for the raco-backend e-commerce system following clean architecture principles with domain classes, JWT tokens, and refresh token management.
 
 ## Files Created
 
 ### Users Module
+
 - `src/modules/users/dto/create-user.dto.ts` - User registration DTO with validation
 - `src/modules/users/dto/update-user.dto.ts` - User update DTO (extends create)
 - `src/modules/users/dto/user-response.dto.ts` - User response DTO (password excluded)
@@ -15,6 +17,7 @@ Complete authentication module for the raco-backend e-commerce system following 
 - `src/modules/users/users.module.ts` - Users module definition
 
 ### Auth Module
+
 - `src/modules/auth/dto/register.dto.ts` - Registration DTO
 - `src/modules/auth/dto/login.dto.ts` - Login DTO
 - `src/modules/auth/dto/refresh.dto.ts` - Refresh token DTO
@@ -33,7 +36,9 @@ Complete authentication module for the raco-backend e-commerce system following 
 - `src/modules/auth/decorators/public.decorator.ts` - @Public decorator
 
 ## Database Schema Updates
+
 Added `RefreshToken` model to Prisma schema:
+
 - `id` (UUID, primary key)
 - `token` (string, unique)
 - `userId` (string, foreign key to User)
@@ -42,11 +47,13 @@ Added `RefreshToken` model to Prisma schema:
 - Cascade delete relationship with User
 
 Updated `User` model to include:
+
 - `refreshTokens` relation (one-to-many)
 
 ## API Endpoints
 
 ### Authentication Endpoints
+
 - `POST /api/v1/auth/register` - User registration
 - `POST /api/v1/auth/login` - User login
 - `POST /api/v1/auth/refresh` - Refresh access token
@@ -55,6 +62,7 @@ Updated `User` model to include:
 - `GET /api/v1/auth/validate` - Validate current token (requires JWT)
 
 ### User Endpoints
+
 - `GET /api/v1/users/me` - Get current user profile (requires JWT)
 - `PUT /api/v1/users/me` - Update current user profile (requires JWT)
 - `GET /api/v1/users/me/orders` - Get user's orders (requires JWT)
@@ -63,12 +71,14 @@ Updated `User` model to include:
 ## Security Features Implemented
 
 ### Password Security
+
 - Bcrypt hashing with 12 salt rounds (configurable via BCRYPT_SALT_ROUNDS)
 - Password comparison using bcrypt.compare()
 - Password never returned in API responses
 - Password excluded at DTO level, not just by convention
 
 ### JWT Token Management
+
 - **Access Token**: Short-lived (15 minutes default, JWT_EXPIRES_IN)
 - **Refresh Token**: Long-lived (7 days default, JWT_REFRESH_EXPIRES_IN)
 - Separate secrets for access and refresh tokens
@@ -76,6 +86,7 @@ Updated `User` model to include:
 - Automatic cleanup of expired tokens
 
 ### Guards and Authorization
+
 - **JwtGuard**: Protects routes requiring authentication
 - **RefreshGuard**: Validates refresh tokens
 - **AdminGuard**: Restricts access to admin users
@@ -84,6 +95,7 @@ Updated `User` model to include:
 - **@CurrentUser() decorator**: Injects current user in controllers
 
 ### Domain Class Architecture
+
 - **User Entity**: Encapsulates user business logic
   - `hashPassword()` - Static method for password hashing
   - `comparePassword()` - Instance method for password verification
@@ -101,7 +113,9 @@ Updated `User` model to include:
   - `cleanupExpiredTokens()` - Maintenance task
 
 ## Configuration Requirements
+
 Environment variables required:
+
 - `JWT_SECRET` - Secret for access tokens (required)
 - `JWT_EXPIRES_IN` - Access token lifetime (default: 15m)
 - `JWT_REFRESH_SECRET` - Secret for refresh tokens (required)
@@ -109,6 +123,7 @@ Environment variables required:
 - `BCRYPT_SALT_ROUNDS` - Password hashing rounds (default: 12)
 
 ## Testing Recommendations
+
 1. Test registration with duplicate email (should fail with 409)
 2. Test login with invalid credentials (should fail with 401)
 3. Test password hashing (verify in database)
@@ -119,6 +134,7 @@ Environment variables required:
 8. Test ownership checks (user can't access other users' data)
 
 ## Production Deployment Checklist
+
 - Set strong JWT secrets (64+ characters recommended)
 - Configure appropriate token lifetimes
 - Enable HTTPS in production
@@ -129,6 +145,7 @@ Environment variables required:
 - Set up database backups
 
 ## Dependencies
+
 - `@nestjs/jwt` - JWT token generation and validation
 - `@nestjs/passport` - Passport authentication integration
 - `passport-jwt` - JWT authentication strategy
@@ -138,6 +155,7 @@ Environment variables required:
 - `@prisma/client` - Database ORM
 
 ## Status
+
 ✅ Module complete and production-ready
 ✅ All security requirements met
 ✅ Domain classes implemented

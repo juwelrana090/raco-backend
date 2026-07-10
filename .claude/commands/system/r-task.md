@@ -1,13 +1,15 @@
 > ⚠️ PROJECT SCOPED: All outputs save to .claude/ only.
 
 ## Local Cache First
-1. Read .claude/skills/_base.md           ← rules + patterns (fast)
-2. Read .claude/skills/_stack.md          ← stack guidance (fast)
-3. Read .claude/skills/_modules-index.md  ← module map (fast)
-Only read .claude/modules/[specific].md if this task touches that module.
-Only read .claude/memory/ files if skills/ cache is cold (🔴).
+
+1. Read .claude/skills/_base.md ← rules + patterns (fast)
+2. Read .claude/skills/_stack.md ← stack guidance (fast)
+3. Read .claude/skills/_modules-index.md ← module map (fast)
+   Only read .claude/modules/[specific].md if this task touches that module.
+   Only read .claude/memory/ files if skills/ cache is cold (🔴).
 
 ## Execute
+
 4. Read .claude/memory/pre-task-checklist.md — complete every item
 5. Read .claude/modules/[relevant].md if needed
 6. State complete plan before writing any code
@@ -19,7 +21,9 @@ Only read .claude/memory/ files if skills/ cache is cold (🔴).
 12. Save log to .claude/tasks/logs/YYYY-MM-DD-[title].md
 
 Log format:
+
 # Task: [title]
+
 **Date**: **Summary**: **Files Changed**: **Modules Affected**:
 **Decisions Made**: **Memory Updated**: **Cache Updated**: **Notes**:
 
