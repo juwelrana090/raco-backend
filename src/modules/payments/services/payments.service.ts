@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
-import { PaymentProvider, PaymentStatus } from '@prisma/client';
+import { PaymentProvider, PaymentStatus, OrderStatus } from '@prisma/client';
 import { Payment } from '../entities/payment.entity';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
 import { ProviderRegistry } from '../strategies/provider-registry';
@@ -160,13 +160,42 @@ export class PaymentsService {
 
       // If payment successful, mark order as paid
       if (newStatus === PaymentStatus.SUCCESS) {
+        // Fetch order items for stock reduction
+        const orderWithItems = await tx.order.findUnique({
+          where: { id: existingPayment.orderId },
+          include: { items: true },
+        });
+
+        if (orderWithItems) {
+          // Reduce stock atomically — conditional update prevents overselling
+          for (const item of orderWithItems.items) {
+            const result = await tx.product.updateMany({
+              where: {
+                id: item.productId,
+                stock: { gte: item.quantity },
+              },
+              data: { stock: { decrement: item.quantity } },
+            });
+
+            if (result.count === 0) {
+              const product = await tx.product.findUnique({
+                where: { id: item.productId },
+              });
+              throw new Error(
+                `Insufficient stock for product "${product?.name}". Payment rolled back.`,
+              );
+            }
+          }
+        }
+
+        // Mark order as PAID
         await tx.order.update({
           where: { id: existingPayment.orderId },
-          data: { status: 'PAID' }, // Prisma enum
+          data: { status: OrderStatus.PAID },
         });
 
         this.logger.log(
-          `Payment ${existingPayment.id} succeeded. Order ${existingPayment.orderId} marked as PAID.`,
+          `Payment ${existingPayment.id} succeeded. Order ${existingPayment.orderId} marked PAID. Stock reduced.`,
         );
       }
 
@@ -174,7 +203,7 @@ export class PaymentsService {
       if (newStatus === PaymentStatus.FAILED) {
         await tx.order.update({
           where: { id: existingPayment.orderId },
-          data: { status: 'CANCELED' }, // Prisma enum
+          data: { status: OrderStatus.CANCELED }, // Prisma enum
         });
 
         this.logger.log(
@@ -222,6 +251,43 @@ export class PaymentsService {
     });
 
     return payments.map((payment) => Payment.fromPrisma(payment));
+  }
+
+  /**
+   * Get all payments — Admin only
+   */
+  async getAllPayments(filters: {
+    page: number;
+    limit: number;
+    status?: string;
+    provider?: string;
+  }) {
+    const { page, limit, status, provider } = filters;
+    const skip = (page - 1) * limit;
+    const where: Record<string, unknown> = {};
+    if (status) where.status = status;
+    if (provider) where.provider = provider;
+
+    const [payments, total] = await Promise.all([
+      this.prisma.payment.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.payment.count({ where }),
+    ]);
+
+    return {
+      success: true,
+      message: 'Payments retrieved successfully',
+      data: {
+        items: payments.map((p) => Payment.fromPrisma(p)),
+        total,
+        page,
+        limit,
+      },
+    };
   }
 
   /**

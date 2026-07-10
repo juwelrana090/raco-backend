@@ -9,23 +9,23 @@ const adapter = new PrismaPg({
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log('🌱 Starting database seed...');
+  console.log('[SEED] Starting database seed...');
 
   // ── Admin user ──────────────────────────────────────────────────────────────
   const hashedPassword = await bcrypt.hash('Admin@1234', 12);
 
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@racocommerce.com' },
+    where: { email: 'admin@raco.com' },
     update: {},
     create: {
-      email: 'admin@racocommerce.com',
+      email: 'admin@raco.com',
       password: hashedPassword,
       name: 'System Administrator',
       role: 'ADMIN',
     },
   });
 
-  console.log('🌱 Created admin user:', admin.email);
+  console.log('[SEED] Created admin user:', admin.email);
 
   // ── Categories ──────────────────────────────────────────────────────────────
   // Since name is not unique in schema, we need to use findFirst + create pattern
@@ -86,7 +86,7 @@ async function main() {
   }
 
   console.log(
-    '🌱 Created categories:',
+    '[SEED] Created categories:',
     electronics.name,
     phones.name,
     laptops.name,
@@ -161,13 +161,13 @@ async function main() {
     });
   }
 
-  console.log(`🌱 Created ${products.length} sample products`);
-  console.log('✅ Database seeded successfully!');
+  console.log(`[SEED] Created ${products.length} sample products`);
+  console.log('[SEED] Database seeded successfully!');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seed failed:', e);
+    console.error('[ERROR] Seed failed:', e);
     process.exit(1);
   })
   .finally(async () => {

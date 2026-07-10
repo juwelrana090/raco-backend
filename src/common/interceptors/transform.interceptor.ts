@@ -24,17 +24,18 @@ export class TransformInterceptor<T> implements NestInterceptor<
     next: CallHandler,
   ): Observable<Response<T>> {
     return next.handle().pipe(
-      map((data) => {
+      map((data: unknown): Response<T> => {
         // If the response already has the success format, return as-is
-        if (data && typeof data === 'object' && 'success' in data) {
-          return data;
+        if (data !== null && typeof data === 'object' && 'success' in data) {
+          return data as Response<T>;
         }
 
         // Wrap successful responses in consistent format
+        const obj = data as { message?: string; data?: T } | null | undefined;
         return {
           success: true,
-          message: data?.message || 'Request successful',
-          data: data?.data !== undefined ? data.data : data,
+          message: obj?.message ?? 'Request successful',
+          data: obj?.data !== undefined ? obj.data : (data as T),
           timestamp: new Date().toISOString(),
         };
       }),

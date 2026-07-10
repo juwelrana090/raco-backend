@@ -5,6 +5,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -14,18 +15,19 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CheckoutOrderDto } from './dto/checkout-order.dto';
 import { JwtGuard } from '../auth/guards/jwt.guard';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { AdminGuard } from '../auth/guards/admin.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('Orders')
 @ApiBearerAuth('JWT')
 @Controller('orders')
 @UseGuards(JwtGuard)
-@ApiBearerAuth()
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
@@ -167,5 +169,35 @@ export class OrdersController {
     @Param('id') orderId: string,
   ) {
     return this.ordersService.cancelOrder(userId, orderId);
+  }
+
+  /**
+   * Get all orders — Admin only
+   */
+  @Get('admin/all')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Get all orders — Admin only' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['PENDING', 'PAID', 'CANCELED'],
+  })
+  @ApiResponse({ status: HttpStatus.OK, description: 'All orders retrieved' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Admin access required',
+  })
+  async getAllOrders(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('status') status?: string,
+  ) {
+    return this.ordersService.getAllOrders({
+      page: +page,
+      limit: +limit,
+      status,
+    });
   }
 }

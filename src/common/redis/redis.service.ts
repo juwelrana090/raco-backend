@@ -4,7 +4,7 @@ import Redis from 'ioredis';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-  private redis: Redis;
+  private redis!: Redis;
   private readonly defaultTTL: number;
 
   constructor(private configService: ConfigService) {
@@ -14,11 +14,14 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     );
   }
 
-  async onModuleInit() {
-    const host = this.configService.get('REDIS_HOST') || 'localhost';
-    const port = parseInt(this.configService.get('REDIS_PORT') || '6379', 10);
-    const password = this.configService.get('REDIS_PASSWORD');
-    const db = parseInt(this.configService.get('REDIS_DB') || '0', 10);
+  onModuleInit() {
+    const host = this.configService.get<string>('REDIS_HOST') ?? 'localhost';
+    const port = parseInt(
+      this.configService.get<string>('REDIS_PORT') ?? '6379',
+      10,
+    );
+    const password = this.configService.get<string>('REDIS_PASSWORD');
+    const db = parseInt(this.configService.get<string>('REDIS_DB') ?? '0', 10);
 
     this.redis = new Redis({
       host,
@@ -37,7 +40,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     });
 
     this.redis.on('connect', () => {
-      console.log('[REDIS] Connected');
+      console.log('✅ Connected to Redis');
     });
   }
 

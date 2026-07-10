@@ -36,16 +36,16 @@ enum PaymentProvider {
 model FileManager {
   id            Int      @id @default(autoincrement())
   fileName      String   @map("file_name")
-  fileType      String   @map("file_type")       // 'image' | 'document' | 'video'
-  fileFormat    String   @map("file_format")     // 'jpg' | 'png' | 'webp' | 'gif'
+  fileType      String   @map("file_type") // 'image' | 'document' | 'video'
+  fileFormat    String   @map("file_format") // 'jpg' | 'png' | 'webp' | 'gif'
   fileThumbnail String?  @map("file_thumbnail")
-  filePath      String   @map("file_path")       // S3 key e.g. raco/products/uuid.jpg
-  fileUse       String   @map("file_use")        // context e.g. 'product-image'
+  filePath      String   @map("file_path") // S3 key e.g. raco/products/uuid.jpg
+  fileUse       String   @map("file_use") // context e.g. 'product-image'
   fileWidth     Int?     @map("file_width")
   fileHeight    Int?     @map("file_height")
   fileBucket    String?  @map("file_bucket")
-  fileUrl       String?  @map("file_url")        // full S3 URL
-  fileCdnUrl    String?  @map("file_cdn_url")    // CDN URL (preferred)
+  fileUrl       String?  @map("file_url") // full S3 URL
+  fileCdnUrl    String?  @map("file_cdn_url") // CDN URL (preferred)
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
 
@@ -98,15 +98,15 @@ model Category {
 }
 
 model Product {
-  id            String  @id @default(uuid())
-  sku           String  @unique
+  id            String   @id @default(uuid())
+  sku           String   @unique
   name          String
   description   String?
   price         Int
-  stock         Int     @default(0)
-  imageUrl      String? @map("image_url")       // CDN URL — shortcut for display
-  fileManagerId Int?    @map("file_manager_id") // FK to FileManager for deletion
-  categoryId    String  @map("category_id")
+  stock         Int      @default(0)
+  imageUrl      String?  @map("image_url") // CDN URL — shortcut for display
+  fileManagerId Int?     @map("file_manager_id") // FK to FileManager for deletion
+  categoryId    String   @map("category_id")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

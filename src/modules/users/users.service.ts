@@ -175,6 +175,52 @@ export class UsersService {
   }
 
   /**
+   * Get all users — Admin only
+   */
+  async getAllUsers(filters: {
+    page: number;
+    limit: number;
+    role?: string;
+    search?: string;
+  }) {
+    const { page, limit, role, search } = filters;
+    const skip = (page - 1) * limit;
+
+    const where: Record<string, unknown> = {};
+    if (role) where.role = role;
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return {
+      success: true,
+      message: 'Users retrieved successfully',
+      data: { items: users, total, page, limit },
+    };
+  }
+
+  /**
    * Convert User entity to response DTO (excluding password)
    */
   private toResponseDto(user: User): UserResponseDto {

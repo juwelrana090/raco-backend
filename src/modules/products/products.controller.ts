@@ -34,12 +34,13 @@ import { ProductResponseDto } from './dto/product-response.dto';
 import { ProductImageResponseDto } from './dto/product-image-response.dto';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { Public } from '../../common/decorators/public.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 
 @ApiTags('Products')
+@ApiBearerAuth('JWT')
 @Controller('products')
 export class ProductsController {
   constructor(

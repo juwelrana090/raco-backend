@@ -4,6 +4,7 @@ import {
   Get,
   Body,
   Param,
+  Query,
   Req,
   Headers,
   UseGuards,
@@ -18,6 +19,8 @@ import {
   ApiResponse,
   ApiHeader,
   ApiBody,
+  ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { PaymentProvider } from '@prisma/client';
 import { PaymentsService } from '../services/payments.service';
@@ -27,6 +30,7 @@ import {
   CreatePaymentResponseDto,
 } from '../dto/payment-response.dto';
 import { JwtGuard } from '../../auth/guards/jwt.guard';
+import { AdminGuard } from '../../auth/guards/admin.guard';
 import { Public } from '../../auth/decorators/public.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 
@@ -248,5 +252,36 @@ export class PaymentsController {
       message: 'Order payments retrieved successfully',
       data,
     };
+  }
+
+  /**
+   * Get all payments — Admin only
+   */
+  @Get('admin/all')
+  @UseGuards(JwtGuard, AdminGuard)
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Get all payments — Admin only' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['PENDING', 'SUCCESS', 'FAILED', 'REFUNDED'],
+  })
+  @ApiQuery({ name: 'provider', required: false, enum: ['STRIPE', 'BKASH'] })
+  @ApiResponse({ status: 200, description: 'All payments retrieved' })
+  @ApiResponse({ status: 403, description: 'Admin access required' })
+  async getAllPayments(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('status') status?: string,
+    @Query('provider') provider?: string,
+  ) {
+    return this.paymentsService.getAllPayments({
+      page: +page,
+      limit: +limit,
+      status,
+      provider,
+    });
   }
 }

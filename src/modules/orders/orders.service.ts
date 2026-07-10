@@ -11,14 +11,12 @@ import { OrderItem } from './entities/order-item.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CheckoutOrderDto } from './dto/checkout-order.dto';
 import { OrderStatus, PaymentStatus } from '@prisma/client';
-import { ConfigService } from '@nestjs/config';
 import { PaymentsService } from '../payments/services/payments.service';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private prisma: PrismaService,
-    private config: ConfigService,
     private paymentsService: PaymentsService,
   ) {}
 
@@ -245,6 +243,46 @@ export class OrdersService {
       success: true,
       message: 'Order cancelled successfully',
       data: Order.fromPrisma(updatedOrder).toJSON(),
+    };
+  }
+
+  /**
+   * Get all orders — Admin only
+   */
+  async getAllOrders(filters: {
+    page: number;
+    limit: number;
+    status?: string;
+  }) {
+    const { page, limit, status } = filters;
+    const skip = (page - 1) * limit;
+    const where: Record<string, unknown> = {};
+    if (status) where.status = status;
+
+    const [orders, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          items: true,
+          payments: true,
+          user: { select: { id: true, name: true, email: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+
+    return {
+      success: true,
+      message: 'Orders retrieved successfully',
+      data: {
+        items: orders.map((o) => Order.fromPrisma(o).toJSON()),
+        total,
+        page,
+        limit,
+      },
     };
   }
 
