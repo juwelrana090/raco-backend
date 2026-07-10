@@ -21,7 +21,8 @@ import { CheckoutOrderDto } from './dto/checkout-order.dto';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
-@ApiTags('orders')
+@ApiTags('Orders')
+@ApiBearerAuth('JWT')
 @Controller('orders')
 @UseGuards(JwtGuard)
 @ApiBearerAuth()

@@ -20,7 +20,7 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { JwtGuard } from './guards/jwt.guard';
 
-@ApiTags('auth')
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -85,7 +85,7 @@ export class AuthController {
    */
   @Post('logout')
   @UseGuards(JwtGuard)
-  @ApiBearerAuth()
+  @ApiBearerAuth('JWT')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Logout user' })
   @ApiResponse({
@@ -113,7 +113,7 @@ export class AuthController {
    */
   @Post('logout-all')
   @UseGuards(JwtGuard)
-  @ApiBearerAuth()
+  @ApiBearerAuth('JWT')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Logout from all devices' })
   @ApiResponse({
@@ -130,7 +130,7 @@ export class AuthController {
    */
   @Get('validate')
   @UseGuards(JwtGuard)
-  @ApiBearerAuth()
+  @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Validate current access token' })
   @ApiResponse({
     status: HttpStatus.OK,

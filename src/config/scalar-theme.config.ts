@@ -6,7 +6,7 @@ export const scalarThemeConfig: Partial<NestJSReferenceConfiguration> = {
   darkMode: false,
   favicon: '/favicon.ico',
   metaData: {
-    title: '🚀 Raco API Documentation',
+    title: 'Raco API Documentation',
     description: 'E-commerce Ordering & Payment System — API Reference',
   },
   persistAuth: true,
@@ -20,12 +20,8 @@ export const scalarThemeConfig: Partial<NestJSReferenceConfiguration> = {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     }
 
-    code, pre, .mono {
-      font-family: 'JetBrains Mono', 'Monaco', 'Cascadia Code', monospace !important;
-    }
-
-    body {
-      background: #f8fafc !important;
+    code, pre, .mono, .cm-content, .cm-editor {
+      font-family: 'JetBrains Mono', 'Monaco', 'Cascadia Code', 'Fira Code', monospace !important;
     }
 
     :root {
@@ -33,35 +29,61 @@ export const scalarThemeConfig: Partial<NestJSReferenceConfiguration> = {
       --scalar-primary-dark: #3641f5;
       --scalar-background-1: #ffffff;
       --scalar-background-2: #f8fafc;
-      --scalar-border: #e4e7ec;
-      --scalar-text-1: #101828;
-      --scalar-text-2: #475467;
-      --scalar-text-3: #667085;
+      --scalar-background-3: #f1f5f9;
+      --scalar-border: #e2e8f0;
+      --scalar-text-1: #0f172a;
+      --scalar-text-2: #475569;
+      --scalar-text-3: #64748b;
+      --scalar-scrollbar-color: #cbd5e1;
     }
 
-    .scalar-get    { --scalar-color-accent: #12b76a; --scalar-color-accent-bg: #ecfdf3; }
-    .scalar-post   { --scalar-color-accent: #465fff; --scalar-color-accent-bg: #ecf3ff; }
-    .scalar-put    { --scalar-color-accent: #f79009; --scalar-color-accent-bg: #fffaeb; }
-    .scalar-delete { --scalar-color-accent: #f04438; --scalar-color-accent-bg: #fef3f2; }
-    .scalar-patch  { --scalar-color-accent: #7a5af8; --scalar-color-accent-bg: #f4f3ff; }
-
-    .scalar-card {
-      background: white;
-      border: 1px solid #e4e7ec;
-      border-radius: 1rem;
-      box-shadow: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
-      transition: all 0.2s ease;
+    /* Sidebar styling */
+    .sidebar {
+      background: #ffffff !important;
+      border-right: 1px solid #e2e8f0 !important;
     }
 
-    .scalar-card:hover {
-      box-shadow: 0 4px 8px -2px rgba(16, 24, 40, 0.1), 0 2px 4px -2px rgba(16, 24, 40, 0.06);
-      border-color: #d0d5dd;
+    /* HTTP method badge colors */
+    .scalar-get    { --scalar-color-accent: #16a34a; --scalar-color-accent-bg: #f0fdf4; }
+    .scalar-post   { --scalar-color-accent: #2563eb; --scalar-color-accent-bg: #eff6ff; }
+    .scalar-put    { --scalar-color-accent: #d97706; --scalar-color-accent-bg: #fffbeb; }
+    .scalar-delete { --scalar-color-accent: #dc2626; --scalar-color-accent-bg: #fef2f2; }
+    .scalar-patch  { --scalar-color-accent: #7c3aed; --scalar-color-accent-bg: #f5f3ff; }
+
+    /* Tag section headings */
+    .section-header h2 {
+      font-size: 1.25rem !important;
+      font-weight: 700 !important;
+      color: #0f172a !important;
     }
 
-    .scalar-operation.get    { border-left: 4px solid #12b76a; }
-    .scalar-operation.post   { border-left: 4px solid #465fff; }
-    .scalar-operation.put    { border-left: 4px solid #f79009; }
-    .scalar-operation.delete { border-left: 4px solid #f04438; }
-    .scalar-operation.patch  { border-left: 4px solid #7a5af8; }
+    /* Operation cards */
+    .section-flattened-item {
+      border: 1px solid #e2e8f0 !important;
+      border-radius: 0.75rem !important;
+      margin-bottom: 0.5rem !important;
+      transition: box-shadow 0.15s ease !important;
+    }
+
+    .section-flattened-item:hover {
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05) !important;
+    }
+
+    /* Authorize button */
+    .scalar-button.authorize {
+      background: #465fff !important;
+      color: white !important;
+      border-radius: 0.5rem !important;
+      font-weight: 600 !important;
+    }
+
+    /* Response codes */
+    .response-code-200 { color: #16a34a !important; }
+    .response-code-201 { color: #16a34a !important; }
+    .response-code-400 { color: #d97706 !important; }
+    .response-code-401 { color: #dc2626 !important; }
+    .response-code-403 { color: #dc2626 !important; }
+    .response-code-404 { color: #dc2626 !important; }
+    .response-code-409 { color: #d97706 !important; }
   `,
 };

@@ -83,7 +83,7 @@ export function setupScalarEndpoints(
 function generatePostmanCollection(document: OpenApiDocument) {
   return {
     info: {
-      name: '🚀 Raco E-commerce API',
+      name: 'Raco E-commerce API',
       description: 'Complete API collection for Raco e-commerce backend',
       schema:
         'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',

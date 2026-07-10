@@ -40,7 +40,7 @@ export class Category implements PrismaCategory {
    */
   getLevel(): number {
     let level = 0;
-    let current = this;
+    const current = this;
     while (current.parentId) {
       level++;
       // This would require fetching parent, simplified for now

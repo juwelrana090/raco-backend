@@ -26,7 +26,7 @@ import { AdminGuard } from '../auth/guards/admin.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 
-@ApiTags('categories')
+@ApiTags('Categories')
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
