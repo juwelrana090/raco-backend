@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "rootDir": "src",
     "outDir": "./dist",
     "module": "nodenext",
     "moduleResolution": "nodenext",
@@ -19,12 +18,5 @@
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false
-  },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "prisma",
-    "prisma.config.ts",
-    "test"
-  ]
+  }
 }
