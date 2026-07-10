@@ -1,0 +1,125 @@
+// Raco E-commerce Backend - Database Schema
+// Paste this into https://dbdiagram.io to visualize
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum PaymentProvider {
+  STRIPE
+  BKASH
+}
+
+Table users {
+  id String [primary key]
+  email String [unique]
+  password String
+  name String
+  role Role [default: 'USER']
+  created_at DateTime [default: 'now()']
+  updated_at DateTime [default: 'now()']
+
+  indexes {
+    email
+  }
+}
+
+Table categories {
+  id String [primary key]
+  name String
+  description String
+  parent_id String [null]
+  created_at DateTime [default: 'now()']
+  updated_at DateTime [default: 'now()']
+
+  indexes {
+    parent_id
+  }
+}
+
+Table products {
+  id String [primary key]
+  sku String [unique]
+  name String
+  description String
+  price Integer
+  stock Integer [default: 0]
+  image_url String [null]
+  category_id String
+  created_at DateTime [default: 'now()']
+  updated_at DateTime [default: 'now()']
+
+  indexes {
+    category_id
+    sku [unique]
+  }
+}
+
+Table orders {
+  id String [primary key]
+  user_id String
+  total_amount Integer
+  status OrderStatus [default: 'PENDING']
+  created_at DateTime [default: 'now()']
+  updated_at DateTime [default: 'now()']
+
+  indexes {
+    user_id
+    status
+  }
+}
+
+Table order_items {
+  id String [primary key]
+  order_id String
+  product_id String
+  quantity Integer
+  price Integer
+  created_at DateTime [default: 'now()']
+
+  indexes {
+    order_id
+    product_id
+  }
+}
+
+Table payments {
+  id String [primary key]
+  order_id String
+  provider PaymentProvider
+  provider_txn_id String [unique]
+  amount Integer
+  status PaymentStatus [default: 'PENDING']
+  raw_response String [null]
+  metadata String [null]
+  created_at DateTime [default: 'now()']
+  updated_at DateTime [default: 'now()']
+
+  indexes {
+    order_id
+    provider_txn_id [unique]
+    status
+  }
+}
+
+// Relationships
+Ref: categories.parent_id > categories.id
+Ref: products.category_id > categories.id
+Ref: orders.user_id > users.id
+Ref: order_items.order_id > orders.id
+Ref: order_items.product_id > products.id
+Ref: payments.order_id > orders.id

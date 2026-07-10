@@ -1,132 +1,404 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# raco-backend — E-commerce Ordering & Payment System
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> A production-quality NestJS backend for e-commerce with multi-provider payment support, category-based recommendations, and comprehensive testing.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🚀 Tech Stack
 
-## Description
+- **Framework**: NestJS 11 with TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Cache**: Redis for category-tree caching and performance
+- **Auth**: JWT with refresh tokens, bcrypt password hashing
+- **Payments**: Strategy pattern supporting Stripe and bKash
+- **File Storage**: AWS S3 compatible (S3, DigitalOcean Spaces, MinIO)
+- **Docs**: Swagger/OpenAPI with Postman export
+- **Testing**: Jest for unit + e2e tests
+- **Containerization**: Docker Compose for local development
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 📋 Features
 
-## Project setup
+- ✅ User authentication with JWT (access + refresh tokens)
+- ✅ Product catalog with categories and stock management
+- ✅ Category hierarchy with DFS-based recommendations
+- ✅ Order management with deterministic totals
+- ✅ Payment strategy pattern (Stripe + bKash)
+- ✅ Secure webhook handlers with idempotency
+- ✅ Admin role for product/category management
+- ✅ Image upload to S3 for products
+- ✅ Comprehensive API documentation with Swagger
+- ✅ Full test coverage (unit + e2e)
+- ✅ Docker Compose for instant local setup
 
-```bash
-$ pnpm install
-```
+## 🛠️ Prerequisites
 
-## Compile and run the project
+Before you begin, ensure you have the following installed:
 
-```bash
-# development
-$ pnpm run start
+- **Node.js** (v18+): [Download](https://nodejs.org/)
+- **pnpm**: `npm install -g pnpm`
+- **Docker Desktop** (for PostgreSQL + Redis): [Download](https://www.docker.com/products/docker-desktop)
+- **ngrok** (for local webhook testing): [Download](https://ngrok.com/download)
 
-# watch mode
-$ pnpm run start:dev
+## 🚀 Quick Start
 
-# production mode
-$ pnpm run start:prod
-```
-
-## Run tests
+### 1. Clone and Install
 
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+git clone <repository-url>
+cd raco-backend
+pnpm install
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 2. Start Docker Services
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+# Start PostgreSQL and Redis
+docker-compose up -d
+
+# Verify containers are running
+docker-compose ps
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 3. Configure Environment
 
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
-
-## 🧠 Claude AI Development System
-
-This project uses a shared Claude Code memory system in `.claude/`
-
-### First time setup
 ```bash
-npm install -g @anthropic-ai/claude-code
-claude
-```
-Then add your name to `.claude/settings.local.json`:
-```json
-{ "developerName": "Your Name Here" }
-```
-Then run `/r-memory-scan` to build your memory.
+# Copy .env.example to .env (already done if you followed the setup)
+cp .env.example .env
 
-### Daily workflow
-```
-/r-start              → load memory, see project status
-/r-todo               → see all pending tasks
-/r-pickup             → pick up a task to work on
-/r-task [desc]        → execute any task
-/r-plan [feature]     → plan a big feature before coding
-/r-fix [desc]         → diagnose and fix a bug
-/r-done               → mark current task as complete
-/r-end                → end of day summary
+# Generate JWT secrets
+node -e "console.log('JWT_SECRET=' + require('crypto').randomBytes(64).toString('hex'))"
+node -e "console.log('JWT_REFRESH_SECRET=' + require('crypto').randomBytes(64).toString('hex'))"
+
+# Edit .env and add the generated secrets
+# nano .env  # or use your preferred editor
 ```
 
-### Team rules
-- Commit all `.claude/` changes after tasks
-- Only `settings.local.json` and `tasks/eod/` are personal/gitignored
-- Add tasks for teammates with `/r-add-task`
-- Update module memory after touching any module
+### 4. Initialize Database
 
+```bash
+# Generate Prisma client
+pnpm run prisma:generate
+
+# Run database migrations
+pnpm run prisma:migrate
+
+# Seed database with admin user and sample products
+pnpm run prisma:seed
+```
+
+### 5. Start Development Server
+
+```bash
+# Start NestJS in watch mode
+pnpm run start:dev
+
+# API will be available at http://localhost:4000
+# Swagger docs at http://localhost:4000/api/docs
+```
+
+## 🔑 Default Admin User
+
+After seeding, you can log in with:
+
+- **Email**: `admin@racocommerce.com`
+- **Password**: `Admin@123`
+- **Role**: Admin
+
+## 🧪 Testing
+
+```bash
+# Unit tests
+pnpm run test
+
+# E2E tests
+pnpm run test:e2e
+
+# Test coverage
+pnpm run test:cov
+```
+
+## 📚 API Documentation
+
+### Swagger UI
+
+Once the server is running, visit:
+
+```
+http://localhost:4000/api/docs
+```
+
+## 🔐 Environment Variables
+
+See [.env.example](.env.example) for all available environment variables.
+
+### Required for Development
+
+```bash
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/raco_backend?schema=public
+
+# JWT Secrets (generate these!)
+JWT_SECRET=<64-char hex string>
+JWT_REFRESH_SECRET=<64-char hex string>
+
+# Payment Gateways (get these from dashboards)
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+BKASH_APP_KEY=...
+BKASH_APP_SECRET=...
+
+# S3/Compatible Storage
+AWS_BUCKET=your-bucket-name
+AWS_DEFAULT_REGION=your-region
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+```
+
+## 🌐 Testing Webhooks Locally
+
+### Stripe Webhooks
+
+```bash
+# Install Stripe CLI
+npm install -g stripe
+
+# Login to Stripe
+stripe login
+
+# Forward webhooks to your local server
+stripe listen --forward-to localhost:4000/api/v1/payments/stripe/webhook
+
+# This will give you a webhook signing secret
+# Add it to your .env: STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+### bKash Webhooks
+
+For bKash, you'll need a public HTTPS endpoint:
+
+```bash
+# Install ngrok
+npm install -g ngrok
+
+# Start ngrok tunnel
+ngrok http 4000
+
+# Update BKASH_CALLBACK_URL in .env
+# BKASH_CALLBACK_URL=https://abc123.ngrok-free.app/api/v1/payments/bkash/callback
+```
+
+## 🐳 Docker Commands
+
+```bash
+# Start services
+docker-compose up -d
+
+# Stop services
+docker-compose down
+
+# View logs
+docker-compose logs -f
+
+# Restart services
+docker-compose restart
+
+# Remove volumes (⚠️ deletes all data)
+docker-compose down -v
+```
+
+## 📦 Project Structure
+
+```
+raco-backend/
+├── src/
+│   ├── modules/
+│   │   ├── auth/          # Authentication & authorization
+│   │   ├── users/         # User management
+│   │   ├── products/      # Product CRUD
+│   │   ├── categories/    # Category hierarchy + DFS
+│   │   ├── orders/        # Order management + totals
+│   │   ├── payments/      # Payment strategy + webhooks
+│   │   └── s3/            # File upload service
+│   ├── common/
+│   │   ├── prisma/        # Prisma service
+│   │   ├── filters/       # Exception filters
+│   │   ├── guards/        # Auth guards
+│   │   └── decorators/    # Custom decorators
+│   └── main.ts
+├── prisma/
+│   ├── schema.prisma
+│   ├── seed.ts
+│   └── migrations/
+├── test/
+│   ├── unit/              # Unit tests
+│   └── e2e/               # E2E tests
+├── .claude/               # AI agent configs and memory
+├── docker-compose.yml
+├── .env.example
+└── README.md
+```
+
+## 🔧 Development Workflow
+
+### Making Database Changes
+
+```bash
+# Modify prisma/schema.prisma
+
+# Create migration
+pnpm run prisma:migrate
+
+# If you mess up, reset (⚠️ destroys data)
+pnpm run prisma:reset
+
+# View database in Prisma Studio
+pnpm run prisma:studio
+```
+
+### Code Style
+
+```bash
+# Format code
+pnpm run format
+
+# Lint code
+pnpm run lint
+
+# Fix lint issues
+pnpm run lint -- --fix
+```
+
+## 🏗️ Architecture Highlights
+
+### Payment Strategy Pattern
+
+The system uses a strategy pattern for payments, making it easy to add new providers:
+
+```typescript
+interface PaymentProviderStrategy {
+  createPayment(order: Order): Promise<ProviderPaymentHandle>;
+  confirmPayment(handle: ProviderPaymentHandle): Promise<PaymentResult>;
+  queryPayment(transactionId: string): Promise<PaymentResult>;
+  verifyWebhook(rawBody: Buffer, signature: string): WebhookEvent;
+}
+```
+
+### Deterministic Order Totals
+
+Order totals are computed deterministically:
+
+```typescript
+// Price snapshot at order time (in minor units)
+subtotal = price * quantity
+total_amount = sum(item.subtotal)
+```
+
+### Safe Stock Reduction
+
+Stock is only reduced after successful payment:
+
+```typescript
+// Conditional update prevents overselling
+UPDATE products 
+SET stock = stock - :qty 
+WHERE id = :id AND stock >= :qty
+```
+
+### Category Recommendations
+
+Uses DFS traversal to find related products:
+
+```typescript
+// Cache results in Redis for ~1 hour
+category:tree:{id} -> [descendant_category_ids]
+```
+
+## 📝 API Endpoints
+
+### Authentication
+- `POST /api/v1/auth/register` - User registration
+- `POST /api/v1/auth/login` - User login
+- `POST /api/v1/auth/refresh` - Refresh access token
+
+### Users
+- `GET /api/v1/users/me` - Get current user
+- `GET /api/v1/users/me/orders` - Get user's orders
+- `GET /api/v1/users/me/payments` - Get user's payments
+
+### Products (Admin for mutations)
+- `GET /api/v1/products` - List products
+- `GET /api/v1/products/:id` - Get product details
+- `GET /api/v1/products/:id/recommendations` - Get recommended products
+- `POST /api/v1/products` - Create product (Admin)
+- `PATCH /api/v1/products/:id` - Update product (Admin)
+- `DELETE /api/v1/products/:id` - Delete product (Admin)
+
+### Categories
+- `GET /api/v1/categories` - Get category tree
+- `GET /api/v1/categories/:id` - Get category details
+- `POST /api/v1/categories` - Create category (Admin)
+- `PATCH /api/v1/categories/:id` - Update category (Admin)
+- `DELETE /api/v1/categories/:id` - Delete category (Admin)
+
+### Orders
+- `POST /api/v1/orders` - Create order from cart
+- `GET /api/v1/orders/:id` - Get order details
+- `POST /api/v1/orders/:id/checkout` - Initiate payment
+
+### Payments
+- `POST /api/v1/payments/stripe/webhook` - Stripe webhook
+- `POST /api/v1/payments/bkash/callback` - bKash callback
+- `GET /api/v1/payments/:id` - Get payment details
+
+## 🧪 Test Coverage
+
+The project includes comprehensive tests:
+
+- **Unit Tests**: Domain classes (User, Product, Order, Payment)
+- **E2E Tests**: Complete flows (register → login → order → checkout → webhook)
+
+## 🔒 Security Features
+
+- ✅ Passwords hashed with bcrypt (12 rounds)
+- ✅ JWT with short-lived access tokens (15min)
+- ✅ Refresh tokens with revocation support
+- ✅ Route guards for authorization
+- ✅ Input validation with class-validator
+- ✅ SQL injection prevention via Prisma
+- ✅ Webhook signature verification
+- ✅ Idempotent webhook handlers
+- ✅ Ownership checks in service layer
+
+## 🚀 Deployment
+
+### Production Checklist
+
+- [ ] Update `JWT_SECRET` and `JWT_REFRESH_SECRET`
+- [ ] Use production database URL
+- [ ] Configure production Redis instance
+- [ ] Use production Stripe/bKash keys
+- [ ] Set up proper S3 bucket with CDN
+- [ ] Enable HTTPS
+- [ ] Configure CORS for production frontend
+- [ ] Set up proper logging and monitoring
+- [ ] Run database migrations: `pnpm run prisma:migrate:deploy`
+
+### Build for Production
+
+```bash
+# Build the project
+pnpm run build
+
+# Start production server
+NODE_ENV=production pnpm run start:prod
+```
+
+## 📄 License
+
+UNLICENSED
+
+## 👤 Author
+
+Backend Engineer Assessment Project
+
+---
+
+**Built with ❤️ using NestJS and TypeScript**

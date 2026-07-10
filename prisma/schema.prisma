@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum PaymentProvider {
+  STRIPE
+  BKASH
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+model User {
+  id           String       @id @default(uuid())
+  email        String       @unique
+  password     String       // bcrypt hashed
+  name         String?
+  role         Role         @default(USER)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  orders       Order[]
+  refreshTokens RefreshToken[]
+
+  @@index([email])
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  parentId    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children Category[] @relation("CategoryHierarchy")
+
+  products Product[]
+
+  @@index([parentId])
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  sku         String    @unique
+  name        String
+  description String?
+  price       Int       // stored in minor units (cents/poisha)
+  stock       Int       @default(0)
+  imageUrl    String?
+  categoryId  String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  category    Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  orderItems  OrderItem[]
+
+  @@index([categoryId])
+  @@index([sku])
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  userId      String
+  totalAmount Int         // stored in minor units (cents/poisha)
+  status      OrderStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items      OrderItem[]
+  payments   Payment[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Int      // snapshot of price at order time (minor units)
+  createdAt DateTime @default(now())
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Payment {
+  id             String          @id @default(uuid())
+  orderId        String
+  provider       PaymentProvider
+  providerTxnId  String?         @unique // transaction_id from provider
+  amount         Int             // stored in minor units
+  status         PaymentStatus   @default(PENDING)
+  rawResponse    String?         @db.Text // JSON string of provider response
+  metadata       String?         @db.Text // Additional metadata
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, provider]) // One payment per order per provider
+  @@index([orderId])
+  @@index([providerTxnId])
+  @@index([status])
+}

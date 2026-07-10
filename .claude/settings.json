@@ -10,13 +10,37 @@
       "Write(.claude/memory/**)",
       "Write(.claude/modules/**)",
       "Write(.claude/skills/**)",
-      "Write(.claude/commands/**)"
+      "Write(.claude/commands/**)",
+      "Bash(npm install *)",
+      "Bash(pnpm install *)",
+      "Bash(npx prisma *)",
+      "Bash(cat README.nestjs-default.md)",
+      "Bash(echo \"\")",
+      "Bash(echo \"# raco-backend — E-commerce Ordering & Payment System\")",
+      "Bash(npm run *)",
+      "Read(//c/Dev/Roco AI/raco-backend/src/modules/auth/decorators/**)",
+      "Bash(pnpm run *)",
+      "Read(//c/Dev/Roco AI/raco-backend/src/modules/orders/entities/**)",
+      "Bash(find \"C:\\\\Dev\\\\Roco AI\\\\raco-backend\\\\src\\\\modules\\\\orders\" -name \"*.ts\" -type f)",
+      "Read(//c/Dev/Roco AI/raco-backend/src/modules/**)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(ls \"C:/Dev/Roco AI/raco-backend/src/modules/orders/entities/\")",
+      "Read(//c/Dev/Roco AI/raco-backend/src/modules/orders/**)",
+      "Bash(pkill -f \"nest start\")",
+      "Bash(pnpm add *)",
+      "Read(//c/Dev/Roco AI/raco-backend/src/modules/payments/**)",
+      "Read(//c/Dev/Roco AI/raco-backend/src/modules/payments/interfaces/**)",
+      "Read(//c/Dev/Roco AI/raco-backend/**)"
     ],
     "deny": [
       "Write(~/**)",
       "Write(../**)",
       "Read(~/.ssh/**)",
       "Read(~/.env/**)"
+    ],
+    "additionalDirectories": [
+      "C:\\Dev\\Roco AI\\raco-backend\\src\\modules\\payments\\strategies",
+      "C:\\Dev\\Roco AI\\raco-backend\\src\\modules\\payments\\services"
     ]
   }
 }
