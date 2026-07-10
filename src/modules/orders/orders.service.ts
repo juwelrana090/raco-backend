@@ -12,12 +12,14 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { CheckoutOrderDto } from './dto/checkout-order.dto';
 import { OrderStatus, PaymentStatus } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
+import { PaymentsService } from '../payments/services/payments.service';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private prisma: PrismaService,
     private config: ConfigService,
+    private paymentsService: PaymentsService,
   ) {}
 
   /**
@@ -157,7 +159,8 @@ export class OrdersService {
    * Flow:
    * 1. Validate order exists and belongs to user
    * 2. Check order is in PENDING status
-   * 3. Create payment record with PENDING status
+   * 3. Delegate to PaymentsService which calls the provider strategy
+   *    (creates Stripe PaymentIntent or bKash checkout URL)
    * 4. Return payment details for client to complete payment
    */
   async checkoutOrder(
@@ -167,7 +170,7 @@ export class OrdersService {
   ) {
     const { provider } = checkoutDto;
 
-    // Fetch order with items
+    // Fetch order and validate
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       include: { items: true },
@@ -177,44 +180,21 @@ export class OrdersService {
       throw new NotFoundException('Order not found');
     }
 
-    // Enforce ownership
     if (order.userId !== userId) {
       throw new ForbiddenException(
         'You do not have permission to access this order',
       );
     }
 
-    // Check order status
     if (order.status !== OrderStatus.PENDING) {
       throw new BadRequestException(
         `Order cannot be checked out. Current status: ${order.status}`,
       );
     }
 
-    // Create payment record
-    const payment = await this.prisma.payment.create({
-      data: {
-        orderId: order.id,
-        provider,
-        amount: order.totalAmount,
-        status: PaymentStatus.PENDING,
-      },
-    });
-
-    // Return payment details for client to complete payment
-    // The actual payment processing will be handled by the payment module
-    return {
-      success: true,
-      message: 'Payment initiated successfully',
-      data: {
-        paymentId: payment.id,
-        orderId: order.id,
-        amount: payment.amount,
-        provider: payment.provider,
-        // Additional payment details would be added by payment module
-        // e.g., clientSecret for Stripe, checkoutURL for bKash
-      },
-    };
+    // Delegate to PaymentsService — this calls the provider strategy
+    // (creates Stripe PaymentIntent or bKash checkout URL)
+    return this.paymentsService.createPayment({ orderId, provider }, userId);
   }
 
   /**

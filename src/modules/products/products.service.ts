@@ -279,16 +279,11 @@ export class ProductsService {
     }
 
     // Delete product image from S3 if exists
-    if (product.imageUrl) {
-      const key = this.s3Service.extractKeyFromUrl(product.imageUrl);
-      if (key) {
-        try {
-          await this.s3Service.deleteFile(key);
-          this.logger.log(`Product image deleted from S3: ${key}`);
-        } catch (error) {
-          this.logger.error(`Failed to delete product image from S3: ${error}`);
-          // Continue with product deletion even if S3 deletion fails
-        }
+    if (product.fileManagerId) {
+      try {
+        await this.s3Service.deleteByFileManagerId(product.fileManagerId);
+      } catch (error) {
+        this.logger.error(`Failed to delete product image from S3: ${error}`);
       }
     }
 
@@ -389,27 +384,35 @@ export class ProductsService {
       );
     }
 
-    // Delete old image if exists
-    if (product.imageUrl) {
-      await this.deleteProductImage(productId);
+    // Delete old image if exists (using FileManager id — not URL)
+    if (product.fileManagerId) {
+      try {
+        await this.s3Service.deleteByFileManagerId(product.fileManagerId);
+      } catch (err) {
+        this.logger.error(`Failed to delete old image: ${err}`);
+      }
     }
 
-    // Upload new image
-    const { url } = await this.s3Service.uploadProductImage(
+    // Upload new image — returns FileManager record
+    const fileRecord = await this.s3Service.uploadProductImage(
       file.buffer,
       file.originalname,
-      productId,
     );
 
-    // Update product with new image URL
+    // Update product: store CDN URL for display + FileManager ID for future deletion
     await this.prisma.product.update({
       where: { id: productId },
-      data: { imageUrl: url },
+      data: {
+        imageUrl: fileRecord.fileCdnUrl,
+        fileManagerId: fileRecord.id,
+      },
     });
 
-    this.logger.log(`Product image uploaded for product ${productId}: ${url}`);
+    this.logger.log(
+      `Product ${productId} image uploaded — FileManager id=${fileRecord.id}`,
+    );
 
-    return { imageUrl: url };
+    return { imageUrl: fileRecord.fileCdnUrl };
   }
 
   /**
@@ -422,21 +425,19 @@ export class ProductsService {
       throw new NotFoundException('Product has no image to delete');
     }
 
-    // Extract key from URL
-    const key = this.s3Service.extractKeyFromUrl(product.imageUrl);
-
-    // Delete from S3
-    if (key) {
-      await this.s3Service.deleteFile(key);
-      this.logger.log(`Product image deleted from S3: ${key}`);
+    // Use FileManager id for deletion — never extract key from URL
+    if (product.fileManagerId) {
+      await this.s3Service.deleteByFileManagerId(product.fileManagerId);
     }
 
-    // Update product to remove image URL
     await this.prisma.product.update({
       where: { id: productId },
-      data: { imageUrl: null },
+      data: {
+        imageUrl: null,
+        fileManagerId: null,
+      },
     });
 
-    this.logger.log(`Product image removed from product ${productId}`);
+    this.logger.log(`Product ${productId} image deleted`);
   }
 }

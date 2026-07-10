@@ -50,7 +50,7 @@ export class BkashStrategy implements PaymentProviderStrategy {
           {
             mode: '0011',
             currency: 'BDT',
-            amount: order.totalAmount.toString(),
+            amount: (order.totalAmount / 100).toFixed(2),
             intent: 'sale',
             merchantInvoiceNumber: order.id,
             callbackURL: this.callbackUrl,
@@ -242,10 +242,6 @@ export class BkashStrategy implements PaymentProviderStrategy {
           {
             headers: {
               'Content-Type': 'application/json',
-              username: this.username,
-              password: this.password,
-            },
-            auth: {
               username: this.username,
               password: this.password,
             },

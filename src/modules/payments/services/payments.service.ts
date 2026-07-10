@@ -9,11 +9,6 @@ import { ConfigService } from '@nestjs/config';
 import { PaymentProvider, PaymentStatus } from '@prisma/client';
 import { Payment } from '../entities/payment.entity';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
-import {
-  ProviderPaymentHandle,
-  PaymentResult,
-  WebhookEvent,
-} from '../dto/provider-payment-handle.dto';
 import { ProviderRegistry } from '../strategies/provider-registry';
 
 /**
@@ -80,7 +75,7 @@ export class PaymentsService {
       data: {
         orderId,
         provider,
-        providerTxnId: null, // Will be set after confirmation
+        providerTxnId: handle.providerPaymentId || null,
         amount: order.totalAmount,
         status: PaymentStatus.PENDING,
         rawResponse: JSON.stringify(handle.providerData),

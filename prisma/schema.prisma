@@ -1,13 +1,9 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -33,6 +29,31 @@ enum PaymentProvider {
   BKASH
 }
 
+// ─── File Manager ─────────────────────────────────────────────────
+// Tracks every file uploaded to S3.
+// fileUse = what the file is for (e.g. 'product-image', 'category-image')
+// filePath = S3 key (used for deletion — never extract from URL)
+model FileManager {
+  id            Int      @id @default(autoincrement())
+  fileName      String   @map("file_name")
+  fileType      String   @map("file_type")       // 'image' | 'document' | 'video'
+  fileFormat    String   @map("file_format")     // 'jpg' | 'png' | 'webp' | 'gif'
+  fileThumbnail String?  @map("file_thumbnail")
+  filePath      String   @map("file_path")       // S3 key e.g. raco/products/uuid.jpg
+  fileUse       String   @map("file_use")        // context e.g. 'product-image'
+  fileWidth     Int?     @map("file_width")
+  fileHeight    Int?     @map("file_height")
+  fileBucket    String?  @map("file_bucket")
+  fileUrl       String?  @map("file_url")        // full S3 URL
+  fileCdnUrl    String?  @map("file_cdn_url")    // CDN URL (preferred)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+
+  products Product[]
+
+  @@map("file_manager")
+}
+
 model RefreshToken {
   id        String   @id @default(uuid())
   token     String   @unique
@@ -49,7 +70,7 @@ model RefreshToken {
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
-  password  String // bcrypt hashed
+  password  String
   name      String?
   role      Role     @default(USER)
   createdAt DateTime @default(now())
@@ -71,35 +92,37 @@ model Category {
 
   parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
   children Category[] @relation("CategoryHierarchy")
-
   products Product[]
 
   @@index([parentId])
 }
 
 model Product {
-  id          String   @id @default(uuid())
-  sku         String   @unique
-  name        String
-  description String?
-  price       Int // stored in minor units (cents/poisha)
-  stock       Int      @default(0)
-  imageUrl    String?
-  categoryId  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String  @id @default(uuid())
+  sku           String  @unique
+  name          String
+  description   String?
+  price         Int
+  stock         Int     @default(0)
+  imageUrl      String? @map("image_url")       // CDN URL — shortcut for display
+  fileManagerId Int?    @map("file_manager_id") // FK to FileManager for deletion
+  categoryId    String  @map("category_id")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  category   Category    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  orderItems OrderItem[]
+  category    Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  fileManager FileManager? @relation(fields: [fileManagerId], references: [id], onDelete: SetNull)
+  orderItems  OrderItem[]
 
   @@index([categoryId])
   @@index([sku])
+  @@index([fileManagerId])
 }
 
 model Order {
   id          String      @id @default(uuid())
   userId      String
-  totalAmount Int // stored in minor units (cents/poisha)
+  totalAmount Int
   status      OrderStatus @default(PENDING)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -117,7 +140,7 @@ model OrderItem {
   orderId   String
   productId String
   quantity  Int
-  price     Int // snapshot of price at order time (minor units)
+  price     Int
   createdAt DateTime @default(now())
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -131,17 +154,17 @@ model Payment {
   id            String          @id @default(uuid())
   orderId       String
   provider      PaymentProvider
-  providerTxnId String?         @unique // transaction_id from provider
-  amount        Int // stored in minor units
+  providerTxnId String?         @unique
+  amount        Int
   status        PaymentStatus   @default(PENDING)
-  rawResponse   String?         @db.Text // JSON string of provider response
-  metadata      String?         @db.Text // Additional metadata
+  rawResponse   String?         @db.Text
+  metadata      String?         @db.Text
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  @@unique([orderId, provider]) // One payment per order per provider
+  @@unique([orderId, provider])
   @@index([orderId])
   @@index([providerTxnId])
   @@index([status])

@@ -6,6 +6,16 @@ import {
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
+import { PrismaService } from '../../common/prisma/prisma.service';
+
+export interface FileManagerRecord {
+  id: number;
+  fileUrl: string;
+  fileCdnUrl: string;
+  filePath: string;
+  fileName: string;
+  fileType: string;
+}
 
 @Injectable()
 export class S3Service {
@@ -15,7 +25,10 @@ export class S3Service {
   private cdnUrl!: string;
   private region!: string;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private prisma: PrismaService,
+  ) {
     const region = this.configService.get<string>('AWS_DEFAULT_REGION');
     const accessKeyId = this.configService.get<string>('AWS_ACCESS_KEY_ID');
     const secretAccessKey = this.configService.get<string>(
@@ -32,13 +45,9 @@ export class S3Service {
     }
 
     this.region = region;
-
     this.s3Client = new S3Client({
       region,
-      credentials: {
-        accessKeyId,
-        secretAccessKey,
-      },
+      credentials: { accessKeyId, secretAccessKey },
       endpoint: endpoint || undefined,
       forcePathStyle: usePathStyle,
     });
@@ -47,19 +56,27 @@ export class S3Service {
     this.cdnUrl = this.configService.get<string>('AWS_CDN_URL') ?? '';
 
     this.logger.log(
-      `S3 Service initialized with bucket: ${this.bucketName}, region: ${region}`,
+      `S3Service initialized — bucket: ${this.bucketName}, region: ${region}`,
     );
   }
 
+  /**
+   * Upload a file to S3 and save a FileManager record.
+   * Returns the full FileManager DB record.
+   *
+   * Key pattern: raco/{folder}/{uuid}.{ext}
+   * Using 'raco/' prefix avoids conflicts with madrasa project
+   * files in the same DigitalOcean Spaces bucket.
+   */
   async uploadFile(
     file: Buffer,
     fileName: string,
     contentType: string,
-    folder = 'uploads',
-  ): Promise<{ url: string; key: string }> {
-    const fileExtension = fileName.split('.').pop();
-    const uniqueFileName = `${uuidv4()}.${fileExtension}`;
-    const key = `products/${folder}/${uniqueFileName}`;
+    fileUse: string,
+  ): Promise<FileManagerRecord> {
+    const fileFormat = fileName.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const uniqueFileName = `${uuidv4()}.${fileFormat}`;
+    const key = `raco/${fileUse}/${uniqueFileName}`;
 
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
@@ -72,48 +89,102 @@ export class S3Service {
     try {
       await this.s3Client.send(command);
 
-      // Return CDN URL if available, otherwise construct S3 URL
       const baseUrl = this.cdnUrl
         ? this.cdnUrl
         : `https://${this.bucketName}.s3.${this.region}.amazonaws.com`;
-      const url = `${baseUrl}/${key}`;
 
-      this.logger.log(`File uploaded successfully: ${key}`);
-      return { url, key };
+      const fileUrl = `${baseUrl}/${key}`;
+
+      // Save file record to database
+      const record = await this.prisma.fileManager.create({
+        data: {
+          fileName: uniqueFileName,
+          fileType: 'image',
+          fileFormat,
+          filePath: key, // S3 key — use this for deletion, not URL
+          fileUse, // context e.g. 'product-image'
+          fileBucket: this.bucketName,
+          fileUrl,
+          fileCdnUrl: fileUrl,
+        },
+      });
+
+      this.logger.log(`File uploaded and recorded: ${key} (id=${record.id})`);
+
+      return {
+        id: record.id,
+        fileUrl: record.fileUrl ?? fileUrl,
+        fileCdnUrl: record.fileCdnUrl ?? fileUrl,
+        filePath: record.filePath,
+        fileName: record.fileName,
+        fileType: record.fileType,
+      };
     } catch (error: any) {
       this.logger.error('S3 upload error:', error);
       throw new Error(`Failed to upload file to S3: ${error.message}`);
     }
   }
 
-  async deleteFile(key: string): Promise<void> {
+  /**
+   * Delete a file from S3 using the stored S3 key (filePath).
+   * Never extract the key from the URL — always use filePath from FileManager.
+   */
+  async deleteFile(filePath: string): Promise<void> {
     const command = new DeleteObjectCommand({
       Bucket: this.bucketName,
-      Key: key,
+      Key: filePath,
     });
 
     try {
       await this.s3Client.send(command);
-      this.logger.log(`File deleted successfully: ${key}`);
+      this.logger.log(`File deleted from S3: ${filePath}`);
     } catch (error: any) {
       this.logger.error('S3 delete error:', error);
       throw new Error(`Failed to delete file from S3: ${error.message}`);
     }
   }
 
+  /**
+   * Upload a product image.
+   * fileUse = 'product-image' so it appears in the FileManager history
+   * under that context.
+   */
   async uploadProductImage(
     file: Buffer,
     fileName: string,
-    productId: string,
-  ): Promise<{ url: string; key: string }> {
+  ): Promise<FileManagerRecord> {
     const contentType = this.getContentType(fileName);
-    return this.uploadFile(file, fileName, contentType, productId);
+    return this.uploadFile(file, fileName, contentType, 'product-image');
+  }
+
+  /**
+   * Delete a FileManager record and its S3 file.
+   * This is the correct way to delete — always go through FileManager.
+   */
+  async deleteByFileManagerId(fileManagerId: number): Promise<void> {
+    const record = await this.prisma.fileManager.findUnique({
+      where: { id: fileManagerId },
+    });
+
+    if (!record) {
+      this.logger.warn(`FileManager record not found: id=${fileManagerId}`);
+      return;
+    }
+
+    // Delete from S3 using filePath (never from URL)
+    await this.deleteFile(record.filePath);
+
+    // Delete DB record
+    await this.prisma.fileManager.delete({
+      where: { id: fileManagerId },
+    });
+
+    this.logger.log(`FileManager record deleted: id=${fileManagerId}`);
   }
 
   private getContentType(fileName: string): string {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-
-    switch (extension) {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    switch (ext) {
       case 'jpg':
       case 'jpeg':
         return 'image/jpeg';
@@ -126,21 +197,5 @@ export class S3Service {
       default:
         return 'application/octet-stream';
     }
-  }
-
-  /**
-   * Extract S3 key from a full URL
-   */
-  extractKeyFromUrl(url: string): string {
-    if (!url) return '';
-
-    // Remove CDN URL or S3 URL to get the key
-    if (this.cdnUrl && url.startsWith(this.cdnUrl)) {
-      return url.replace(`${this.cdnUrl}/`, '');
-    }
-
-    // Try to extract from S3 URL format
-    const match = url.match(/https?:\/\/[^\/]+\.amazonaws\.com\/(.+)/);
-    return match ? match[1] : '';
   }
 }

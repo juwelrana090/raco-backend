@@ -1,11 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
-import {
-  PaymentProvider,
-  PaymentStatus,
-  Order as PrismaOrder,
-} from '@prisma/client';
+import { PaymentProvider, Order as PrismaOrder } from '@prisma/client';
 import { PaymentProviderStrategy } from '../interfaces/payment-provider-strategy.interface';
 import type {
   ProviderPaymentHandle,
@@ -79,6 +75,7 @@ export class StripeStrategy implements PaymentProviderStrategy {
         providerPaymentId: paymentIntent.id,
         providerData: {
           paymentIntentId: paymentIntent.id,
+          clientSecret: paymentIntent.client_secret,
           amount: paymentIntent.amount,
           currency: paymentIntent.currency,
         },

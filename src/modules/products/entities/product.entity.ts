@@ -8,6 +8,7 @@ export class Product implements PrismaProduct {
   price: number;
   stock: number;
   imageUrl: string | null;
+  fileManagerId: number | null;
   categoryId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -20,6 +21,7 @@ export class Product implements PrismaProduct {
     this.price = data.price;
     this.stock = data.stock;
     this.imageUrl = data.imageUrl;
+    this.fileManagerId = data.fileManagerId;
     this.categoryId = data.categoryId;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
@@ -65,6 +67,7 @@ export class Product implements PrismaProduct {
       price: this.price,
       stock: this.stock,
       imageUrl: this.imageUrl,
+      fileManagerId: this.fileManagerId,
       categoryId: this.categoryId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
