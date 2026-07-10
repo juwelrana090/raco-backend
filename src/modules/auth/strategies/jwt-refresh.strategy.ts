@@ -2,19 +2,13 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
-import { Tokens } from '../entities/tokens.entity';
-import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../../../common/prisma/prisma.service';
 
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(
   Strategy,
   'jwt-refresh',
 ) {
-  constructor(
-    private config: ConfigService,
-    private authService: any, // We'll use a simplified approach
-  ) {
+  constructor(private config: ConfigService) {
     const refreshSecret = config.get<string>('JWT_REFRESH_SECRET');
     if (!refreshSecret) {
       throw new Error(

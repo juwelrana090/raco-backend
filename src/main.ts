@@ -1,28 +1,31 @@
-import { NestFactory, Reflector } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import {
   ValidationPipe,
   ValidationError,
   BadRequestException,
   Logger,
 } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
+import { Request, Response, NextFunction } from 'express';
 import compression from 'compression';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
-import { IS_PUBLIC_KEY } from './common/decorators/public.decorator';
 import { createScalarDocument } from './config/scalar.config';
 import { setupScalarEndpoints } from './config/scalar-endpoints.config';
 import { scalarThemeConfig } from './config/scalar-theme.config';
 
-/**
- * Raw body parser for webhook endpoints
- *
- * CRITICAL: Webhook signature verification requires raw request body
- * Stripe and bKash webhooks need the unparsed body for signature verification
- */
-async function rawBodyMiddleware(req: any, res: any, next: any) {
+interface RawBodyRequest extends Request {
+  rawBody?: Buffer;
+}
+
+function rawBodyMiddleware(
+  req: RawBodyRequest,
+  res: Response,
+  next: NextFunction,
+): void {
   if (req.path.includes('/webhook') || req.path.includes('/callback')) {
     const chunks: Buffer[] = [];
     req.on('data', (chunk: Buffer) => chunks.push(chunk));
@@ -36,18 +39,18 @@ async function rawBodyMiddleware(req: any, res: any, next: any) {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const logger = new Logger('Bootstrap');
 
   // Raw body parser for webhooks (MUST be before other middleware)
-  (app as any).use(rawBodyMiddleware);
+  app.use(rawBodyMiddleware);
 
   // Global API prefix
-  const apiPrefix = process.env.API_PREFIX || 'api/v1';
+  const apiPrefix = process.env.API_PREFIX ?? 'api/v1';
   app.setGlobalPrefix(apiPrefix);
 
   // CORS configuration
-  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') ?? [
     'http://localhost:3000',
   ];
   app.enableCors({
@@ -63,16 +66,16 @@ async function bootstrap() {
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Strip properties that don't have decorators
-      forbidNonWhitelisted: true, // Throw error if non-whitelisted values are provided
-      transform: true, // Automatically transform payloads to DTO instances
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
       transformOptions: {
         enableImplicitConversion: true,
       },
       exceptionFactory: (errors: ValidationError[]) => {
         const formattedErrors = errors.map((error) => ({
           field: error.property,
-          constraints: Object.values(error.constraints || {}),
+          constraints: Object.values(error.constraints ?? {}),
         }));
         return new BadRequestException({
           message: 'Validation failed',
@@ -98,19 +101,14 @@ async function bootstrap() {
   app.use(
     '/api-docs',
     apiReference({
-      spec: {
-        content: document,
-      },
+      spec: { content: document },
       ...scalarThemeConfig,
     }),
   );
 
-  // Get port from environment or use default
-  const port = process.env.PORT || 4000;
+  const port = process.env.PORT ?? 4000;
 
-  // Enable graceful shutdown
   app.enableShutdownHooks();
-
   await app.listen(port);
 
   logger.log(`🚀 Running on http://localhost:${port}/api/v1`);
@@ -120,7 +118,7 @@ async function bootstrap() {
   logger.log(`💚 Health:   http://localhost:${port}/api-info`);
 }
 
-bootstrap().catch((error) => {
+bootstrap().catch((error: Error) => {
   console.error('Error starting application:', error);
   process.exit(1);
 });

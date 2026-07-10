@@ -64,5 +64,18 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 .claude/settings.local.json
 .claude/tasks/eod/
 
-
+# Prisma
 /generated/prisma
+
+# Ignore all type of compressed files
+*.zip
+*.tar.gz
+*.tar
+*.rar
+*.7z
+*.gz
+*.bz2
+*.xz
+*.tgz
+*.tar.xz
+*.tar.bz2

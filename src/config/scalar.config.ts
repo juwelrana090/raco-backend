@@ -3,7 +3,7 @@ import { DocumentBuilder } from '@nestjs/swagger';
 const getServers = () => {
   const port = process.env.PORT || '4000';
   const isDev = process.env.NODE_ENV !== 'production';
-  const servers = [];
+  const servers: { url: string; description: string }[] = [];
 
   if (isDev) {
     servers.push({

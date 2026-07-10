@@ -244,3 +244,33 @@ try {
   // Continue with product deletion - S3 cleanup can be manual
 }
 ```
+
+## Prisma v7 — Requires Driver Adapter (not datasourceUrl)
+
+Prisma v7 removed `datasourceUrl` from `PrismaClientOptions`. PrismaClient now requires either an `adapter` (Driver Adapter) or an `accelerateUrl`. For PostgreSQL, install and use `@prisma/adapter-pg`:
+
+```bash
+pnpm add @prisma/adapter-pg pg
+pnpm add -D @types/pg
+```
+
+```typescript
+import { PrismaPg } from '@prisma/adapter-pg';
+
+constructor() {
+  const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL!,
+  });
+  super({ adapter });
+}
+```
+
+Empty `super()` and `super({ datasourceUrl: ... })` both throw `PrismaClientInitializationError` at startup.
+
+**Discovered**: 2026-07-10 during Prisma v7 upgrade
+
+## NestJS DI — `any` typed constructor params break resolution
+
+NestJS cannot resolve `any` typed constructor dependencies. Always use concrete class types (e.g., `ConfigService`) as constructor parameters in injectable classes.
+
+**Discovered**: 2026-07-10 during auth strategy fix

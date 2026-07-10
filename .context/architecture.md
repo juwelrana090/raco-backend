@@ -44,4 +44,7 @@
 
 - Postgres: 46.224.55.122:5432 (remote Docker, raco-postgres container)
 - Redis: 46.224.55.122:6363 (remote Docker, raco-redis container)
-- NestJS: localhost:4000 (pnpm start:dev)
+- NestJS: localhost:4000 (pnpm dev:watch)
+- API prefix: api/v1
+- Full base URL: http://localhost:4000/api/v1
+- Swagger: http://localhost:4000/api-docs
