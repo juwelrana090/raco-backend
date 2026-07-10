@@ -1,7 +1,42 @@
 import { INestApplication } from '@nestjs/common';
+import { OpenAPIObject } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 
-export function setupScalarEndpoints(app: INestApplication, document: any) {
+interface OpenApiParameter {
+  in: string;
+  name: string;
+  example?: unknown;
+  description?: string;
+  required?: boolean;
+}
+
+interface OpenApiOperation {
+  tags?: string[];
+  summary?: string;
+  description?: string;
+  security?: unknown[];
+  parameters?: OpenApiParameter[];
+  requestBody?: {
+    content?: {
+      'application/json'?: { example?: unknown };
+    };
+  };
+}
+
+interface OpenApiDocument {
+  paths?: Record<string, Record<string, OpenApiOperation>>;
+}
+
+interface PostmanFolder {
+  name: string;
+  item: unknown[];
+}
+
+export function setupScalarEndpoints(
+  app: INestApplication,
+  document: OpenAPIObject,
+) {
+  const doc = document as unknown as OpenApiDocument;
   // GET /api-json — raw OpenAPI spec
   app.use('/api-json', (req: Request, res: Response) => {
     res.setHeader('Content-Type', 'application/json');
@@ -12,7 +47,7 @@ export function setupScalarEndpoints(app: INestApplication, document: any) {
 
   // GET /postman — Postman collection download
   app.use('/postman', (req: Request, res: Response) => {
-    const collection = generatePostmanCollection(document);
+    const collection = generatePostmanCollection(doc);
     res.setHeader('Content-Type', 'application/json');
     res.setHeader(
       'Content-Disposition',
@@ -33,7 +68,7 @@ export function setupScalarEndpoints(app: INestApplication, document: any) {
         openapi: '/api-json',
         postman: '/postman',
       },
-      endpoints: Object.keys(document.paths || {}).length,
+      endpoints: Object.keys(doc.paths ?? {}).length,
       services: [
         { name: 'PostgreSQL', status: 'active', note: 'Prisma ORM' },
         { name: 'Redis', status: 'active', note: 'Category tree DFS cache' },
@@ -45,10 +80,10 @@ export function setupScalarEndpoints(app: INestApplication, document: any) {
   });
 }
 
-function generatePostmanCollection(document: any) {
+function generatePostmanCollection(document: OpenApiDocument) {
   return {
     info: {
-      name: 'Raco E-commerce API',
+      name: '🚀 Raco E-commerce API',
       description: 'Complete API collection for Raco e-commerce backend',
       schema:
         'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
@@ -92,12 +127,12 @@ function generatePostmanCollection(document: any) {
   };
 }
 
-function generatePostmanItems(document: any) {
-  const folders = new Map<string, any>();
+function generatePostmanItems(document: OpenApiDocument): PostmanFolder[] {
+  const folders = new Map<string, PostmanFolder>();
 
-  Object.entries(document.paths || {}).forEach(([path, methods]) => {
-    Object.entries(methods as any).forEach(
-      ([method, operation]: [string, any]) => {
+  Object.entries(document.paths ?? {}).forEach(([path, methods]) => {
+    Object.entries(methods).forEach(
+      ([method, operation]: [string, OpenApiOperation]) => {
         if (
           ![
             'get',
@@ -111,12 +146,12 @@ function generatePostmanItems(document: any) {
         )
           return;
 
-        const tag = operation.tags?.[0] || 'General';
+        const tag: string = operation.tags?.[0] ?? 'General';
         if (!folders.has(tag)) {
           folders.set(tag, { name: tag, item: [] });
         }
 
-        const folder = folders.get(tag);
+        const folder = folders.get(tag) as PostmanFolder;
         const prefix = '/api/v1';
         const cleanPath = path.startsWith(prefix)
           ? path.substring(prefix.length)
@@ -138,12 +173,17 @@ function generatePostmanItems(document: any) {
               raw: `{{base_url}}${cleanPath}`,
               host: ['{{base_url}}'],
               path: cleanPath.split('/').filter(Boolean),
-              query: (operation.parameters || [])
-                .filter((p: any) => p.in === 'query')
-                .map((p: any) => ({
+              query: (operation.parameters ?? [])
+                .filter((p) => p.in === 'query')
+                .map((p) => ({
                   key: p.name,
-                  value: p.example?.toString() || '',
-                  description: p.description || '',
+                  value:
+                    typeof p.example === 'string' ||
+                    typeof p.example === 'number' ||
+                    typeof p.example === 'boolean'
+                      ? String(p.example)
+                      : '',
+                  description: p.description ?? '',
                   disabled: !p.required,
                 })),
             },
@@ -159,7 +199,7 @@ function generatePostmanItems(document: any) {
                   options: { raw: { language: 'json' } },
                 }
               : undefined,
-            description: operation.description || operation.summary || '',
+            description: operation.description ?? operation.summary ?? '',
           },
         });
       },

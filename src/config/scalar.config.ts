@@ -29,27 +29,27 @@ export const createScalarDocument = () => {
     .setTitle('Raco E-commerce API')
     .setDescription(
       `
-# Raco E-commerce API
+# 🛒 Raco E-commerce API
 
 E-commerce Ordering & Payment System — NestJS + Prisma + PostgreSQL.
 
-## Quick Access
-- [Postman Collection](/postman) — Import directly into Postman
-- [Health & Service Status](/api-info) — System status
-- [OpenAPI JSON](/api-json) — Raw spec for code generation
+## 🔗 Quick Access
+- [📋 Postman Collection](/postman) — Import directly into Postman
+- [💚 Health & Service Status](/api-info) — System status
+- [📄 OpenAPI JSON](/api-json) — Raw spec for code generation
 
-## Authentication
+## 🔐 Authentication
 JWT Bearer Token. Click **Authorize** and paste your token.
 
 Obtain token from: \`POST /api/v1/auth/login\`
 
-## Payment Providers
+## 💳 Payment Providers
 - **Stripe** — Test mode. Use card \`4242 4242 4242 4242\`, any future expiry, any CVC.
 - **bKash** — Sandbox mode. Use sandbox credentials from \`.env\`.
 
-## Money Fields
+## 💰 Money Fields
 All price/amount fields are in **poisha** (integer). Divide by 100 to get taka.
-Example: \`price: 125000\` = BDT 1,250.00
+Example: \`price: 125000\` = ৳ 1,250.00
 `,
     )
     .setVersion('1.0.0')

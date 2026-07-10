@@ -9,7 +9,7 @@ const adapter = new PrismaPg({
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log('[SEED] Starting database seed...');
+  console.log('🌱 Starting database seed...');
 
   // ── Admin user ──────────────────────────────────────────────────────────────
   const hashedPassword = await bcrypt.hash('Admin@1234', 12);
@@ -25,7 +25,7 @@ async function main() {
     },
   });
 
-  console.log('[SEED] Created admin user:', admin.email);
+  console.log('🌱 Created admin user:', admin.email);
 
   // ── Categories ──────────────────────────────────────────────────────────────
   // Since name is not unique in schema, we need to use findFirst + create pattern
@@ -86,7 +86,7 @@ async function main() {
   }
 
   console.log(
-    '[SEED] Created categories:',
+    '🌱 Created categories:',
     electronics.name,
     phones.name,
     laptops.name,
@@ -161,13 +161,13 @@ async function main() {
     });
   }
 
-  console.log(`[SEED] Created ${products.length} sample products`);
-  console.log('[SEED] Database seeded successfully!');
+  console.log(`🌱 Created ${products.length} sample products`);
+  console.log('✅ Database seeded successfully!');
 }
 
 main()
   .catch((e) => {
-    console.error('[ERROR] Seed failed:', e);
+    console.error('❌ Seed failed:', e);
     process.exit(1);
   })
   .finally(async () => {

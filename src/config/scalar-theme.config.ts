@@ -6,7 +6,7 @@ export const scalarThemeConfig: Partial<NestJSReferenceConfiguration> = {
   darkMode: false,
   favicon: '/favicon.ico',
   metaData: {
-    title: 'Raco API Documentation',
+    title: '🚀 Raco API Documentation',
     description: 'E-commerce Ordering & Payment System — API Reference',
   },
   persistAuth: true,
