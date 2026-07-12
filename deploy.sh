@@ -20,9 +20,25 @@ if [ "$USER" != "root" ] && [ "$USER" != "www-data" ]; then
     echo "You may need sudo for some operations"
 fi
 
+# Install pnpm if not available
+if ! command -v pnpm &> /dev/null; then
+    echo "📦 pnpm not found. Installing pnpm globally..."
+    npm install -g pnpm
+fi
+
 # Install dependencies
 echo "📦 Installing dependencies..."
 pnpm install --frozen-lockfile
+
+# Check if .env exists
+if [ ! -f .env ]; then
+    echo "⚠️  Warning: .env file not found!"
+    echo "Creating .env from .env.example..."
+    cp .env.example .env
+    echo "📝 Please edit .env with production values!"
+    echo "Press Enter to continue or Ctrl+C to abort..."
+    read
+fi
 
 # Generate Prisma client
 echo "🗄️  Generating Prisma client..."
@@ -49,9 +65,22 @@ if pm2 list | grep -q "raco-backend"; then
     pm2 delete raco-backend
 fi
 
+# Check if PM2 is installed
+if ! command -v pm2 &> /dev/null; then
+    echo "📦 PM2 not found. Installing PM2 globally..."
+    npm install -g pm2
+fi
+
+# Stop existing process if running
+if pm2 list | grep -q "raco-backend"; then
+    echo "🛑 Stopping existing raco-backend process..."
+    pm2 stop raco-backend
+    pm2 delete raco-backend
+fi
+
 # Start with PM2
 echo "🚀 Starting raco-backend with PM2..."
-pm2 start dist/main.js --name raco-backend -- --port 4000
+pm2 start dist/main.js --name raco-backend
 
 # Save PM2 configuration
 pm2 save
