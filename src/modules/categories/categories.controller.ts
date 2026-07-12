@@ -9,6 +9,9 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,6 +28,8 @@ import { JwtGuard } from '../auth/guards/jwt.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 
 @ApiTags('Categories')
 @ApiBearerAuth('JWT')
@@ -191,5 +196,54 @@ export class CategoriesController {
   @ApiParam({ name: 'id', type: String })
   async remove(@Param('id') id: string): Promise<void> {
     await this.categoriesService.remove(id);
+  }
+
+  /**
+   * Upload category image (Admin only)
+   */
+  @Post(':id/image')
+  @UseGuards(JwtGuard, AdminGuard)
+  @ApiBearerAuth('JWT')
+  @Roles('ADMIN')
+  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
+  @ApiOperation({ summary: 'Upload category image (Admin only)' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Category image uploaded successfully',
+    schema: {
+      example: {
+        success: true,
+        message: 'Category image uploaded successfully',
+        data: { imageUrl: 'https://cdn.madrasah.dev/raco/category-image/uuid.jpg' },
+      },
+    },
+  })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid file type or size' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Category not found' })
+  async uploadCategoryImage(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<{ imageUrl: string }> {
+    if (!file) {
+      throw new BadRequestException('Image file is required');
+    }
+    return this.categoriesService.uploadCategoryImage(id, file);
+  }
+
+  /**
+   * Delete category image (Admin only)
+   */
+  @Delete(':id/image')
+  @UseGuards(JwtGuard, AdminGuard)
+  @ApiBearerAuth('JWT')
+  @Roles('ADMIN')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete category image (Admin only)' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Category image deleted' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Category or image not found' })
+  async deleteCategoryImage(@Param('id') id: string): Promise<void> {
+    await this.categoriesService.deleteCategoryImage(id);
   }
 }

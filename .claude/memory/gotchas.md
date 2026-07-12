@@ -245,6 +245,30 @@ try {
 }
 ```
 
+#### S3 — FileInterceptor Missing memoryStorage Causes Undefined Buffer
+
+- **What Happens**: `file.buffer` is `undefined` when uploading to S3, causing empty uploads or silent failures
+- **Why**: `FileInterceptor('image')` without storage option uses multer's default disk storage. Multer writes the file to a temp folder and sets `file.path` — but `file.buffer` is `undefined`
+- **How to Avoid**: Always configure FileInterceptor with memoryStorage: `FileInterceptor('image', { storage: memoryStorage() })`
+- **Discovered**: 2026-07-12 during product image upload bug fix
+- **Security Impact**: High - causes silent upload failures, potentially leaving products without images
+
+**Example**:
+
+```typescript
+// WRONG - file.buffer will be undefined
+@UseInterceptors(FileInterceptor('image'))
+
+// RIGHT - file.buffer will contain the file bytes
+@UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
+```
+
+**Import Required**:
+
+```typescript
+import { memoryStorage } from 'multer';
+```
+
 ## Prisma v7 — Requires Driver Adapter (not datasourceUrl)
 
 Prisma v7 removed `datasourceUrl` from `PrismaClientOptions`. PrismaClient now requires either an `adapter` (Driver Adapter) or an `accelerateUrl`. For PostgreSQL, install and use `@prisma/adapter-pg`:
@@ -274,3 +298,83 @@ Empty `super()` and `super({ datasourceUrl: ... })` both throw `PrismaClientInit
 NestJS cannot resolve `any` typed constructor dependencies. Always use concrete class types (e.g., `ConfigService`) as constructor parameters in injectable classes.
 
 **Discovered**: 2026-07-10 during auth strategy fix
+
+## Categories — Image Upload Pattern
+
+- **What Happens**: Category image upload fails if Redis cache is not invalidated after image changes
+- **Why**: Category tree is cached in Redis for performance, but stale cache doesn't reflect image updates
+- **How to Avoid**: Always invalidate `category_tree` Redis key after any image upload or delete operation
+- **Discovered**: 2026-07-12 during category image upload implementation
+- **Pattern**:
+
+```typescript
+// After image operations
+await this.redis.del('category_tree');
+```
+
+- **FileUse Pattern**: Category images use `fileUse='category-image'` in FileManager records, not 'product-image'
+- **Cleanup Strategy**: Delete old category image before uploading new one to prevent orphaned files in S3
+- **Discovered**: 2026-07-12 during category image upload implementation
+
+**Example**:
+
+```typescript
+// Always invalidate cache after image changes
+await this.redis.del('category_tree');
+
+// Use correct fileUse for categories
+return this.uploadFile(file, fileName, contentType, 'category-image');
+```
+
+## S3 Configuration & Environment Variables
+
+### S3 — Hardcoded Fallback URL Breaks Multi-Environment Support
+
+- **What Happens**: S3 service uses hardcoded URL fallback that ignores AWS_ENDPOINT environment variable
+- **Why**: Code uses `https://sgp1.digitaloceanspaces.com` instead of `${endpoint}/${bucket}` when CDN URL is not set
+- **How to Avoid**: Always store endpoint as class field and use it in URL construction: `${this.endpoint}/${this.bucketName}`
+- **Discovered**: 2026-07-12 during S3 service refactoring
+- **Pattern**:
+
+```typescript
+// WRONG - hardcoded fallback
+const baseUrl = this.cdnUrl ? this.cdnUrl : `https://sgp1.digitaloceanspaces.com`;
+
+// RIGHT - use stored endpoint
+const baseUrl = this.cdnUrl ? this.cdnUrl : `${this.endpoint}/${this.bucketName}`;
+```
+
+### S3 — Quoted .env Values Break ConfigService
+
+- **What Happens**: Environment variables with quotes (e.g., `AWS_BUCKET="madrasah.dev"`) are read with quotes as part of the value
+- **Why**: ConfigService reads the literal string including the quote characters, breaking URL construction and comparisons
+- **How to Avoid**: Never use quotes around .env values - use bare values only
+- **Discovered**: 2026-07-12 during S3 configuration debugging
+- **Examples**:
+
+```bash
+# WRONG - ConfigService reads the quotes as part of the value
+AWS_BUCKET="madrasah.dev"
+AWS_ENDPOINT="https://sgp1.digitaloceanspaces.com"
+
+# CORRECT - no quotes
+AWS_BUCKET=madrasah.dev
+AWS_ENDPOINT=https://sgp1.digitaloceanspaces.com
+```
+
+### S3 — Defensive Quote Stripping in S3Service
+
+- **What Happens**: Even when .env is fixed, some deployment environments (like Plesk) may add quotes automatically
+- **Why**: Server control panels may wrap environment values in quotes for "safety"
+- **How to Avoid**: Use `stripQuotes()` helper function in S3Service constructor as defensive fallback
+- **Discovered**: 2026-07-12 during S3 service hardening
+- **Pattern**:
+
+```typescript
+const stripQuotes = (val: string | undefined) =>
+  val?.replace(/^["']|["']$/g, '') ?? '';
+
+this.bucketName = stripQuotes(this.configService.get<string>('AWS_BUCKET')) || '';
+```
+
+**Note**: This is a defensive measure - always fix the .env source too, but add stripQuotes() as a safety net for different deployment environments.

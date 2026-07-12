@@ -49,7 +49,8 @@ model FileManager {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
 
-  products Product[]
+  products   Product[]
+  categories Category[]
 
   @@map("file_manager")
 }
@@ -83,18 +84,22 @@ model User {
 }
 
 model Category {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  parentId    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(uuid())
+  name          String
+  description   String?
+  parentId      String?
+  imageUrl      String?  @map("image_url")
+  fileManagerId Int?     @map("file_manager_id")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
-  children Category[] @relation("CategoryHierarchy")
-  products Product[]
+  parent      Category?   @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Category[]  @relation("CategoryHierarchy")
+  products    Product[]
+  fileManager FileManager? @relation(fields: [fileManagerId], references: [id], onDelete: SetNull)
 
   @@index([parentId])
+  @@index([fileManagerId])
 }
 
 model Product {

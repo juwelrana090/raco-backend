@@ -3,9 +3,11 @@ import {
   ConflictException,
   NotFoundException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { RedisService } from '../../common/redis/redis.service';
+import { S3Service } from '../s3/s3.service';
 import { Category } from './entities/category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -13,9 +15,12 @@ import { Product } from '../products/entities/product.entity';
 
 @Injectable()
 export class CategoriesService {
+  private readonly logger = new Logger(CategoriesService.name);
+
   constructor(
     private prisma: PrismaService,
     private redis: RedisService,
+    private s3Service: S3Service,
   ) {}
 
   /**
@@ -344,5 +349,73 @@ export class CategoriesService {
     // This would require pattern matching, for now we'll handle it
     // by invalidating specific caches when products change
     await this.redis.delPattern('category:tree:*');
+  }
+
+  /**
+   * Upload category image to S3 and update category record.
+   */
+  async uploadCategoryImage(
+    categoryId: string,
+    file: Express.Multer.File,
+  ): Promise<{ imageUrl: string }> {
+    const category = await this.findOne(categoryId);
+
+    // Delete old image if exists
+    if (category.fileManagerId) {
+      try {
+        await this.s3Service.deleteByFileManagerId(category.fileManagerId);
+      } catch (err) {
+        this.logger.error(`Failed to delete old category image: ${err}`);
+      }
+    }
+
+    // Upload new image
+    const fileRecord = await this.s3Service.uploadCategoryImage(
+      file.buffer,
+      file.originalname,
+    );
+
+    // Update category
+    await this.prisma.category.update({
+      where: { id: categoryId },
+      data: {
+        imageUrl: fileRecord.fileCdnUrl,
+        fileManagerId: fileRecord.id,
+      },
+    });
+
+    // Invalidate Redis cache so tree refreshes
+    await this.redis.del('category_tree');
+
+    this.logger.log(
+      `Category ${categoryId} image uploaded — FileManager id=${fileRecord.id}`,
+    );
+
+    return { imageUrl: fileRecord.fileCdnUrl };
+  }
+
+  /**
+   * Delete category image from S3 and clear imageUrl.
+   */
+  async deleteCategoryImage(categoryId: string): Promise<void> {
+    const category = await this.findOne(categoryId);
+
+    if (!category.imageUrl) {
+      throw new NotFoundException('Category has no image');
+    }
+
+    if (category.fileManagerId) {
+      await this.s3Service.deleteByFileManagerId(category.fileManagerId);
+    }
+
+    await this.prisma.category.update({
+      where: { id: categoryId },
+      data: { imageUrl: null, fileManagerId: null },
+    });
+
+    // Invalidate Redis cache
+    await this.redis.del('category_tree');
+
+    this.logger.log(`Category ${categoryId} image deleted`);
   }
 }

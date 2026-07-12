@@ -5,6 +5,8 @@ export class Category implements PrismaCategory {
   name: string;
   description: string | null;
   parentId: string | null;
+  imageUrl: string | null;
+  fileManagerId: number | null;
   createdAt: Date;
   updatedAt: Date;
 
@@ -17,6 +19,8 @@ export class Category implements PrismaCategory {
     this.name = data.name;
     this.description = data.description;
     this.parentId = data.parentId;
+    this.imageUrl = (data as any).imageUrl ?? null;
+    this.fileManagerId = (data as any).fileManagerId ?? null;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }
@@ -65,6 +69,8 @@ export class Category implements PrismaCategory {
       name: this.name,
       description: this.description,
       parentId: this.parentId,
+      imageUrl: this.imageUrl,
+      fileManagerId: this.fileManagerId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       ...(this.children && { children: this.children }),
@@ -81,6 +87,8 @@ export class Category implements PrismaCategory {
       name: this.name,
       description: this.description,
       parentId: this.parentId,
+      imageUrl: this.imageUrl,
+      fileManagerId: this.fileManagerId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

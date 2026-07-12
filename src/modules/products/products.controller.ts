@@ -37,6 +37,7 @@ import { AdminGuard } from '../auth/guards/admin.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { ConfigService } from '@nestjs/config';
 
 @ApiTags('Products')
@@ -220,7 +221,7 @@ export class ProductsController {
   @UseGuards(JwtGuard, AdminGuard)
   @ApiBearerAuth()
   @Roles('ADMIN')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
   @ApiOperation({ summary: 'Upload product image (Admin only)' })
   @ApiResponse({
     status: HttpStatus.OK,

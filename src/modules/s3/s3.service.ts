@@ -1,12 +1,9 @@
-import {
-  DeleteObjectCommand,
-  PutObjectCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { S3Client } from '@aws-sdk/client-s3';
 
 export interface FileManagerRecord {
   id: number;
@@ -21,52 +18,68 @@ export interface FileManagerRecord {
 export class S3Service {
   private readonly logger = new Logger(S3Service.name);
   private s3Client: S3Client;
-  private bucketName!: string;
-  private cdnUrl!: string;
-  private region!: string;
+  private bucketName: string;
+  private cdnUrl: string;
+  private endpoint: string;
+  private region: string;
 
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
   ) {
-    const region = this.configService.get<string>('AWS_DEFAULT_REGION');
-    const accessKeyId = this.configService.get<string>('AWS_ACCESS_KEY_ID');
-    const secretAccessKey = this.configService.get<string>(
-      'AWS_SECRET_ACCESS_KEY',
-    );
-    const endpoint = this.configService.get<string>('AWS_ENDPOINT');
-    const usePathStyle =
-      this.configService.get<string>('AWS_USE_PATH_STYLE_ENDPOINT') === 'true';
+    // Read all env vars — strip surrounding quotes if present (Plesk .env quirk)
+    const stripQuotes = (val: string | undefined) =>
+      val?.replace(/^["']|["']$/g, '') ?? '';
 
-    if (!region || !accessKeyId || !secretAccessKey) {
+    this.region =
+      stripQuotes(this.configService.get<string>('AWS_DEFAULT_REGION')) ||
+      'sgp1';
+    this.endpoint =
+      stripQuotes(this.configService.get<string>('AWS_ENDPOINT')) ||
+      'https://sgp1.digitaloceanspaces.com';
+    this.bucketName =
+      stripQuotes(this.configService.get<string>('AWS_BUCKET')) || '';
+    this.cdnUrl =
+      stripQuotes(this.configService.get<string>('AWS_CDN_URL')) || '';
+
+    const accessKeyId = stripQuotes(
+      this.configService.get<string>('AWS_ACCESS_KEY_ID'),
+    );
+    const secretAccessKey = stripQuotes(
+      this.configService.get<string>('AWS_SECRET_ACCESS_KEY'),
+    );
+    const usePathStyle =
+      stripQuotes(
+        this.configService.get<string>('AWS_USE_PATH_STYLE_ENDPOINT'),
+      ) === 'true';
+
+    if (!this.region || !accessKeyId || !secretAccessKey) {
       throw new Error(
         'Missing required AWS credentials in environment variables',
       );
     }
 
-    this.region = region;
     this.s3Client = new S3Client({
-      region,
+      region: this.region,
       credentials: { accessKeyId, secretAccessKey },
-      endpoint: endpoint || undefined,
+      endpoint: this.endpoint || undefined,
       forcePathStyle: usePathStyle,
     });
 
-    this.bucketName = this.configService.get<string>('AWS_BUCKET') ?? '';
-    this.cdnUrl = this.configService.get<string>('AWS_CDN_URL') ?? '';
-
     this.logger.log(
-      `S3Service initialized — bucket: ${this.bucketName}, region: ${region}`,
+      `S3Service initialized — bucket: ${this.bucketName}, region: ${this.region}, endpoint: ${this.endpoint}`,
     );
   }
 
   /**
    * Upload a file to S3 and save a FileManager record.
-   * Returns the full FileManager DB record.
    *
-   * Key pattern: raco/{folder}/{uuid}.{ext}
-   * Using 'raco/' prefix avoids conflicts with madrasa project
-   * files in the same DigitalOcean Spaces bucket.
+   * Key pattern: raco/{fileUse}/{uuid}.{ext}
+   * 'raco/' prefix avoids conflict with madrasa files in the same bucket.
+   *
+   * URL resolution:
+   *   If AWS_CDN_URL is set  → use CDN URL (preferred, faster)
+   *   Otherwise              → construct from endpoint + bucket
    */
   async uploadFile(
     file: Buffer,
@@ -89,27 +102,27 @@ export class S3Service {
     try {
       await this.s3Client.send(command);
 
+      // Build public URL — CDN preferred, falls back to endpoint + bucket path
       const baseUrl = this.cdnUrl
         ? this.cdnUrl
-        : `https://${this.bucketName}.s3.${this.region}.amazonaws.com`;
+        : `${this.endpoint}/${this.bucketName}`;
 
       const fileUrl = `${baseUrl}/${key}`;
 
-      // Save file record to database
       const record = await this.prisma.fileManager.create({
         data: {
           fileName: uniqueFileName,
           fileType: 'image',
           fileFormat,
-          filePath: key, // S3 key — use this for deletion, not URL
-          fileUse, // context e.g. 'product-image'
+          filePath: key, // S3 key — always use this for deletion
+          fileUse,
           fileBucket: this.bucketName,
           fileUrl,
           fileCdnUrl: fileUrl,
         },
       });
 
-      this.logger.log(`File uploaded and recorded: ${key} (id=${record.id})`);
+      this.logger.log(`File uploaded: ${key} (FileManager id=${record.id})`);
 
       return {
         id: record.id,
@@ -126,8 +139,8 @@ export class S3Service {
   }
 
   /**
-   * Delete a file from S3 using the stored S3 key (filePath).
-   * Never extract the key from the URL — always use filePath from FileManager.
+   * Delete a file from S3 by its S3 key (filePath).
+   * Never extract the key from a URL — always use the stored filePath.
    */
   async deleteFile(filePath: string): Promise<void> {
     const command = new DeleteObjectCommand({
@@ -140,26 +153,39 @@ export class S3Service {
       this.logger.log(`File deleted from S3: ${filePath}`);
     } catch (error: any) {
       this.logger.error('S3 delete error:', error);
-      throw new Error(`Failed to delete file from S3: ${error.message}`);
+      throw new Error(`Failed to delete file to S3: ${error.message}`);
     }
   }
 
-  /**
-   * Upload a product image.
-   * fileUse = 'product-image' so it appears in the FileManager history
-   * under that context.
-   */
+  /** Upload product image. fileUse = 'product-image' */
   async uploadProductImage(
     file: Buffer,
     fileName: string,
   ): Promise<FileManagerRecord> {
-    const contentType = this.getContentType(fileName);
-    return this.uploadFile(file, fileName, contentType, 'product-image');
+    return this.uploadFile(
+      file,
+      fileName,
+      this.getContentType(fileName),
+      'product-image',
+    );
+  }
+
+  /** Upload category image. fileUse = 'category-image' */
+  async uploadCategoryImage(
+    file: Buffer,
+    fileName: string,
+  ): Promise<FileManagerRecord> {
+    return this.uploadFile(
+      file,
+      fileName,
+      this.getContentType(fileName),
+      'category-image',
+    );
   }
 
   /**
-   * Delete a FileManager record and its S3 file.
-   * This is the correct way to delete — always go through FileManager.
+   * Delete a FileManager record + its S3 file.
+   * This is the ONLY correct deletion path — never extract key from URL.
    */
   async deleteByFileManagerId(fileManagerId: number): Promise<void> {
     const record = await this.prisma.fileManager.findUnique({
@@ -171,31 +197,21 @@ export class S3Service {
       return;
     }
 
-    // Delete from S3 using filePath (never from URL)
     await this.deleteFile(record.filePath);
-
-    // Delete DB record
-    await this.prisma.fileManager.delete({
-      where: { id: fileManagerId },
-    });
+    await this.prisma.fileManager.delete({ where: { id: fileManagerId } });
 
     this.logger.log(`FileManager record deleted: id=${fileManagerId}`);
   }
 
   private getContentType(fileName: string): string {
     const ext = fileName.split('.').pop()?.toLowerCase();
-    switch (ext) {
-      case 'jpg':
-      case 'jpeg':
-        return 'image/jpeg';
-      case 'png':
-        return 'image/png';
-      case 'gif':
-        return 'image/gif';
-      case 'webp':
-        return 'image/webp';
-      default:
-        return 'application/octet-stream';
-    }
+    const map: Record<string, string> = {
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      png: 'image/png',
+      gif: 'image/gif',
+      webp: 'image/webp',
+    };
+    return map[ext ?? ''] ?? 'application/octet-stream';
   }
 }
