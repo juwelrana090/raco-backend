@@ -54,7 +54,11 @@ export class PaymentsController {
    */
   @Post()
   @UseGuards(JwtGuard)
-  @ApiOperation({ summary: 'Create a payment for an order' })
+  @ApiOperation({
+    summary: 'Create a payment for an order',
+    description:
+      'Initiate a payment for a pending order. Returns provider-specific data (Stripe client_secret or bKash URL) for client-side payment completion.',
+  })
   @ApiResponse({
     status: 201,
     description: 'Payment created successfully',
@@ -62,7 +66,10 @@ export class PaymentsController {
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 404, description: 'Order not found' })
-  @ApiResponse({ status: 409, description: 'Payment already exists' })
+  @ApiResponse({
+    status: 409,
+    description: 'Payment already exists for this order',
+  })
   async createPayment(
     @Body() createPaymentDto: CreatePaymentDto,
     @CurrentUser('id') userId: string,
@@ -118,10 +125,14 @@ export class PaymentsController {
   @Public()
   @Post('stripe/webhook')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Stripe webhook endpoint' })
+  @ApiOperation({
+    summary: 'Stripe webhook endpoint',
+    description:
+      'Handle Stripe webhook events. Verifies signature, processes payment_intent.succeeded and payment_intent.payment_failed events. Idempotent — safe to retry.',
+  })
   @ApiHeader({
     name: 'stripe-signature',
-    description: 'Stripe webhook signature',
+    description: 'Stripe webhook signature for verification',
     required: true,
   })
   @ApiResponse({
@@ -163,7 +174,11 @@ export class PaymentsController {
   @Public()
   @Post('bkash/callback')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'bKash callback endpoint' })
+  @ApiOperation({
+    summary: 'bKash callback endpoint',
+    description:
+      'Handle bKash payment callback. Verifies payment status by querying bKash API. Idempotent — safe to retry.',
+  })
   @ApiBody({ description: 'bKash callback data' })
   @ApiResponse({
     status: 200,
@@ -196,7 +211,11 @@ export class PaymentsController {
    */
   @Get(':paymentId')
   @UseGuards(JwtGuard)
-  @ApiOperation({ summary: 'Get payment details' })
+  @ApiOperation({
+    summary: 'Get payment details',
+    description:
+      'Returns detailed payment information including provider, status, and timestamps.',
+  })
   @ApiResponse({ status: 200, description: 'Payment details retrieved' })
   @ApiResponse({ status: 404, description: 'Payment not found' })
   async getPayment(@Param('paymentId') paymentId: string): Promise<{
@@ -227,7 +246,11 @@ export class PaymentsController {
    */
   @Get('order/:orderId')
   @UseGuards(JwtGuard)
-  @ApiOperation({ summary: 'Get payments for an order' })
+  @ApiOperation({
+    summary: 'Get payments for an order',
+    description:
+      'Returns all payment attempts for a specific order. Useful for checking payment history.',
+  })
   @ApiResponse({ status: 200, description: 'Order payments retrieved' })
   async getPaymentsForOrder(@Param('orderId') orderId: string): Promise<{
     success: boolean;
@@ -260,15 +283,25 @@ export class PaymentsController {
   @Get('admin/all')
   @UseGuards(JwtGuard, AdminGuard)
   @ApiBearerAuth('JWT')
-  @ApiOperation({ summary: 'Get all payments — Admin only' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOperation({
+    summary: 'Get all payments — Admin only',
+    description:
+      'Returns a paginated list of all payments across all orders. Supports filtering by status and provider.',
+  })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
   @ApiQuery({
     name: 'status',
     required: false,
     enum: ['PENDING', 'SUCCESS', 'FAILED', 'REFUNDED'],
+    description: 'Filter by payment status',
   })
-  @ApiQuery({ name: 'provider', required: false, enum: ['STRIPE', 'BKASH'] })
+  @ApiQuery({
+    name: 'provider',
+    required: false,
+    enum: ['STRIPE', 'BKASH'],
+    description: 'Filter by payment provider',
+  })
   @ApiResponse({ status: 200, description: 'All payments retrieved' })
   @ApiResponse({ status: 403, description: 'Admin access required' })
   async getAllPayments(

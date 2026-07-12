@@ -42,7 +42,11 @@ export class CategoriesController {
    */
   @Get()
   @Public()
-  @ApiOperation({ summary: 'Get category tree (nested structure)' })
+  @ApiOperation({
+    summary: 'Get category tree (nested structure)',
+    description:
+      'Returns the full category hierarchy as a nested tree. Cached in Redis for 1 hour.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Category tree retrieved successfully',
@@ -58,7 +62,10 @@ export class CategoriesController {
    */
   @Get(':id')
   @Public()
-  @ApiOperation({ summary: 'Get category by ID' })
+  @ApiOperation({
+    summary: 'Get category by ID',
+    description: 'Returns a single category with its parent reference.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Category retrieved successfully',
@@ -68,7 +75,7 @@ export class CategoriesController {
     status: HttpStatus.NOT_FOUND,
     description: 'Category not found',
   })
-  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'id', type: String, description: 'Category UUID' })
   async findOne(@Param('id') id: string): Promise<CategoryResponseDto> {
     const category = await this.categoriesService.findOne(id);
     return category.toFlatJSON() as CategoryResponseDto;
@@ -79,7 +86,11 @@ export class CategoriesController {
    */
   @Get(':id/products')
   @Public()
-  @ApiOperation({ summary: 'Get all products in category and subcategories' })
+  @ApiOperation({
+    summary: 'Get all products in category and subcategories',
+    description:
+      'Returns all products in the specified category and all its descendant categories using DFS traversal.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Products retrieved successfully',
@@ -89,7 +100,7 @@ export class CategoriesController {
     status: HttpStatus.NOT_FOUND,
     description: 'Category not found',
   })
-  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'id', type: String, description: 'Category UUID' })
   async getProducts(@Param('id') id: string) {
     return this.categoriesService.getProducts(id);
   }
@@ -101,7 +112,11 @@ export class CategoriesController {
   @UseGuards(JwtGuard, AdminGuard)
   @ApiBearerAuth()
   @Roles('ADMIN')
-  @ApiOperation({ summary: 'Create a new category (Admin only)' })
+  @ApiOperation({
+    summary: 'Create a new category (Admin only)',
+    description:
+      'Create a new category with optional parent. Supports nested hierarchy up to any depth.',
+  })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Category created successfully',
@@ -135,7 +150,11 @@ export class CategoriesController {
   @UseGuards(JwtGuard, AdminGuard)
   @ApiBearerAuth()
   @Roles('ADMIN')
-  @ApiOperation({ summary: 'Update a category (Admin only)' })
+  @ApiOperation({
+    summary: 'Update a category (Admin only)',
+    description:
+      'Update category fields. Circular parent references are prevented.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Category updated successfully',
@@ -158,7 +177,7 @@ export class CategoriesController {
     status: HttpStatus.FORBIDDEN,
     description: 'Admin access required',
   })
-  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'id', type: String, description: 'Category UUID' })
   async update(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
@@ -175,7 +194,11 @@ export class CategoriesController {
   @ApiBearerAuth()
   @Roles('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete a category (Admin only)' })
+  @ApiOperation({
+    summary: 'Delete a category (Admin only)',
+    description:
+      'Delete a category. Fails if category has subcategories or products.',
+  })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'Category deleted successfully',
@@ -193,7 +216,7 @@ export class CategoriesController {
     status: HttpStatus.FORBIDDEN,
     description: 'Admin access required',
   })
-  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'id', type: String, description: 'Category UUID' })
   async remove(@Param('id') id: string): Promise<void> {
     await this.categoriesService.remove(id);
   }
@@ -206,8 +229,12 @@ export class CategoriesController {
   @ApiBearerAuth('JWT')
   @Roles('ADMIN')
   @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
-  @ApiOperation({ summary: 'Upload category image (Admin only)' })
-  @ApiParam({ name: 'id', type: String })
+  @ApiOperation({
+    summary: 'Upload category image (Admin only)',
+    description:
+      'Upload an image for a category. Old image is automatically deleted. Redis cache is invalidated.',
+  })
+  @ApiParam({ name: 'id', type: String, description: 'Category UUID' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Category image uploaded successfully',
@@ -215,12 +242,20 @@ export class CategoriesController {
       example: {
         success: true,
         message: 'Category image uploaded successfully',
-        data: { imageUrl: 'https://cdn.madrasah.dev/raco/category-image/uuid.jpg' },
+        data: {
+          imageUrl: 'https://cdn.madrasah.dev/raco/category-image/uuid.jpg',
+        },
       },
     },
   })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid file type or size' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Category not found' })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid file type or size',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Category not found',
+  })
   async uploadCategoryImage(
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
@@ -239,10 +274,19 @@ export class CategoriesController {
   @ApiBearerAuth('JWT')
   @Roles('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete category image (Admin only)' })
-  @ApiParam({ name: 'id', type: String })
-  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Category image deleted' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Category or image not found' })
+  @ApiOperation({
+    summary: 'Delete category image (Admin only)',
+    description: 'Remove the image associated with a category from S3 storage.',
+  })
+  @ApiParam({ name: 'id', type: String, description: 'Category UUID' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Category image deleted',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Category or image not found',
+  })
   async deleteCategoryImage(@Param('id') id: string): Promise<void> {
     await this.categoriesService.deleteCategoryImage(id);
   }

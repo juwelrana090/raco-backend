@@ -36,7 +36,11 @@ export class UsersController {
   @Get('me')
   @UseGuards(JwtGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiOperation({
+    summary: 'Get current user profile',
+    description:
+      'Returns the authenticated user profile including email, name, role, and timestamps.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'User profile retrieved successfully',
@@ -53,7 +57,11 @@ export class UsersController {
   @Put('me')
   @UseGuards(JwtGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update current user profile' })
+  @ApiOperation({
+    summary: 'Update current user profile',
+    description:
+      'Update the authenticated user profile. Only provided fields will be updated.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'User profile updated successfully',
@@ -77,7 +85,11 @@ export class UsersController {
   @Get('me/orders')
   @UseGuards(JwtGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: "Get current user's orders" })
+  @ApiOperation({
+    summary: "Get current user's orders",
+    description:
+      'Returns all orders placed by the authenticated user with items and payment status.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Orders retrieved successfully',
@@ -93,7 +105,11 @@ export class UsersController {
   @Get('me/payments')
   @UseGuards(JwtGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: "Get current user's payments" })
+  @ApiOperation({
+    summary: "Get current user's payments",
+    description:
+      'Returns all payment transactions made by the authenticated user.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Payments retrieved successfully',
@@ -108,11 +124,25 @@ export class UsersController {
    */
   @Get()
   @UseGuards(AdminGuard)
-  @ApiOperation({ summary: 'Get all users — Admin only' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'role', required: false, enum: ['USER', 'ADMIN'] })
-  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiOperation({
+    summary: 'Get all users — Admin only',
+    description:
+      'Returns a paginated list of all users. Supports filtering by role and search by name/email.',
+  })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
+  @ApiQuery({
+    name: 'role',
+    required: false,
+    enum: ['USER', 'ADMIN'],
+    description: 'Filter by user role',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search by name or email',
+  })
   @ApiResponse({ status: 200, description: 'Users retrieved successfully' })
   @ApiResponse({ status: 403, description: 'Admin access required' })
   async getAllUsers(
@@ -134,8 +164,11 @@ export class UsersController {
    */
   @Get(':id')
   @UseGuards(AdminGuard)
-  @ApiOperation({ summary: 'Get user by ID — Admin only' })
-  @ApiParam({ name: 'id', type: String })
+  @ApiOperation({
+    summary: 'Get user by ID — Admin only',
+    description: 'Returns a single user profile by their UUID.',
+  })
+  @ApiParam({ name: 'id', type: String, description: 'User UUID' })
   @ApiResponse({ status: 200, description: 'User retrieved successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   async getUserById(@Param('id') id: string) {

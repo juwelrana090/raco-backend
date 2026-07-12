@@ -54,18 +54,44 @@ export class ProductsController {
    */
   @Get()
   @Public()
-  @ApiOperation({ summary: 'Get all products with pagination and filtering' })
+  @ApiOperation({
+    summary: 'Get all products with pagination and filtering',
+    description:
+      'Returns a paginated list of products. Supports filtering by category, search by name, and sorting.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Products retrieved successfully',
     type: Object,
   })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'categoryId', required: false, type: String })
-  @ApiQuery({ name: 'search', required: false, type: String })
-  @ApiQuery({ name: 'sortBy', required: false, type: String })
-  @ApiQuery({ name: 'sortOrder', required: false, type: String })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
+  @ApiQuery({
+    name: 'categoryId',
+    required: false,
+    type: String,
+    description: 'Filter by category UUID',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search by product name',
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    type: String,
+    enum: ['name', 'price', 'createdAt', 'stock'],
+    description: 'Sort field (default: createdAt)',
+  })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    type: String,
+    enum: ['asc', 'desc'],
+    description: 'Sort order (default: desc)',
+  })
   async findAll(@Query() query: QueryProductDto) {
     return this.productsService.findAll(query);
   }
@@ -75,7 +101,11 @@ export class ProductsController {
    */
   @Get(':id')
   @Public()
-  @ApiOperation({ summary: 'Get product by ID' })
+  @ApiOperation({
+    summary: 'Get product by ID',
+    description:
+      'Returns a single product with all details including category.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Product retrieved successfully',
@@ -85,7 +115,7 @@ export class ProductsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Product not found',
   })
-  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'id', type: String, description: 'Product UUID' })
   async findOne(@Param('id') id: string): Promise<ProductResponseDto> {
     const product = await this.productsService.findOne(id);
     return product.toJSON() as ProductResponseDto;
@@ -98,6 +128,8 @@ export class ProductsController {
   @Public()
   @ApiOperation({
     summary: 'Get recommended products using category tree traversal',
+    description:
+      'Returns products from the same category and its descendant categories. Uses DFS traversal cached in Redis.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -108,8 +140,14 @@ export class ProductsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Product not found',
   })
-  @ApiParam({ name: 'id', type: String })
-  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
+  @ApiParam({ name: 'id', type: String, description: 'Product UUID' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    example: 10,
+    description: 'Max recommendations to return',
+  })
   async getRecommendations(
     @Param('id') id: string,
     @Query('limit') limit?: number,
@@ -124,13 +162,20 @@ export class ProductsController {
   @UseGuards(JwtGuard, AdminGuard)
   @ApiBearerAuth()
   @Roles('ADMIN')
-  @ApiOperation({ summary: 'Create a new product (Admin only)' })
+  @ApiOperation({
+    summary: 'Create a new product (Admin only)',
+    description:
+      'Create a new product with SKU, name, price (in poisha), stock, and category. SKU must be unique.',
+  })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Product created successfully',
     type: ProductResponseDto,
   })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input' })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid input (validation errors)',
+  })
   @ApiResponse({
     status: HttpStatus.CONFLICT,
     description: 'SKU already exists',
@@ -154,13 +199,20 @@ export class ProductsController {
   @UseGuards(JwtGuard, AdminGuard)
   @ApiBearerAuth()
   @Roles('ADMIN')
-  @ApiOperation({ summary: 'Update a product (Admin only)' })
+  @ApiOperation({
+    summary: 'Update a product (Admin only)',
+    description:
+      'Update product fields. Only provided fields will be updated. SKU uniqueness is enforced.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Product updated successfully',
     type: ProductResponseDto,
   })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input' })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid input',
+  })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Product not found',
@@ -174,7 +226,7 @@ export class ProductsController {
     status: HttpStatus.FORBIDDEN,
     description: 'Admin access required',
   })
-  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'id', type: String, description: 'Product UUID' })
   async update(
     @Param('id') id: string,
     @Body() updateProductDto: UpdateProductDto,
@@ -191,7 +243,11 @@ export class ProductsController {
   @ApiBearerAuth()
   @Roles('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete a product (Admin only)' })
+  @ApiOperation({
+    summary: 'Delete a product (Admin only)',
+    description:
+      'Permanently delete a product. Fails if product is referenced in existing orders.',
+  })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'Product deleted successfully',
@@ -209,7 +265,7 @@ export class ProductsController {
     status: HttpStatus.FORBIDDEN,
     description: 'Admin access required',
   })
-  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'id', type: String, description: 'Product UUID' })
   async remove(@Param('id') id: string): Promise<void> {
     await this.productsService.remove(id);
   }
@@ -222,7 +278,11 @@ export class ProductsController {
   @ApiBearerAuth()
   @Roles('ADMIN')
   @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
-  @ApiOperation({ summary: 'Upload product image (Admin only)' })
+  @ApiOperation({
+    summary: 'Upload product image (Admin only)',
+    description:
+      'Upload an image for a product. Accepted formats: JPEG, PNG, WebP, GIF. Max size: 5MB. Old image is automatically deleted.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Product image uploaded successfully',
@@ -242,7 +302,7 @@ export class ProductsController {
     description: 'Admin access required',
   })
   @ApiConsumes('multipart/form-data')
-  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'id', type: String, description: 'Product UUID' })
   async uploadProductImage(
     @Param('id') id: string,
     @UploadedFile(
@@ -272,7 +332,10 @@ export class ProductsController {
   @ApiBearerAuth()
   @Roles('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete product image (Admin only)' })
+  @ApiOperation({
+    summary: 'Delete product image (Admin only)',
+    description: 'Remove the image associated with a product from S3 storage.',
+  })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'Product image deleted successfully',
@@ -286,7 +349,7 @@ export class ProductsController {
     status: HttpStatus.FORBIDDEN,
     description: 'Admin access required',
   })
-  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'id', type: String, description: 'Product UUID' })
   async deleteProductImage(@Param('id') id: string): Promise<void> {
     await this.productsService.deleteProductImage(id);
   }

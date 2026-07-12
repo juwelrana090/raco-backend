@@ -313,46 +313,93 @@ category:tree:{id} -> [descendant_category_ids]
 
 ## 📝 API Endpoints
 
+### Interactive Documentation
+
+| Resource | URL | Description |
+|----------|-----|-------------|
+| **Scalar UI** | `/api-docs` | Interactive API documentation |
+| **Postman Collection** | `/postman` | Import directly into Postman |
+| **OpenAPI JSON** | `/api-json` | Raw spec for code generation |
+| **Health Check** | `/api-info` | System health and services |
+
 ### Authentication
 
-- `POST /api/v1/auth/register` - User registration
-- `POST /api/v1/auth/login` - User login
-- `POST /api/v1/auth/refresh` - Refresh access token
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `POST` | `/api/v1/auth/register` | Public | Register a new user |
+| `POST` | `/api/v1/auth/login` | Public | Login and get JWT tokens |
+| `POST` | `/api/v1/auth/refresh` | Public | Refresh access token |
+| `POST` | `/api/v1/auth/logout` | JWT | Logout (invalidate refresh token) |
+| `POST` | `/api/v1/auth/logout-all` | JWT | Logout from all devices |
+| `GET` | `/api/v1/auth/validate` | JWT | Validate current token |
 
 ### Users
 
-- `GET /api/v1/users/me` - Get current user
-- `GET /api/v1/users/me/orders` - Get user's orders
-- `GET /api/v1/users/me/payments` - Get user's payments
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/api/v1/users/me` | JWT | Get current user profile |
+| `PUT` | `/api/v1/users/me` | JWT | Update current user profile |
+| `GET` | `/api/v1/users/me/orders` | JWT | Get current user's orders |
+| `GET` | `/api/v1/users/me/payments` | JWT | Get current user's payments |
+| `GET` | `/api/v1/users` | Admin | Get all users (paginated) |
+| `GET` | `/api/v1/users/:id` | Admin | Get user by ID |
 
-### Products (Admin for mutations)
+### Products
 
-- `GET /api/v1/products` - List products
-- `GET /api/v1/products/:id` - Get product details
-- `GET /api/v1/products/:id/recommendations` - Get recommended products
-- `POST /api/v1/products` - Create product (Admin)
-- `PATCH /api/v1/products/:id` - Update product (Admin)
-- `DELETE /api/v1/products/:id` - Delete product (Admin)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/api/v1/products` | Public | List products (paginated, filterable) |
+| `GET` | `/api/v1/products/:id` | Public | Get product details |
+| `GET` | `/api/v1/products/:id/recommendations` | Public | Get recommended products |
+| `POST` | `/api/v1/products` | Admin | Create a new product |
+| `PATCH` | `/api/v1/products/:id` | Admin | Update a product |
+| `DELETE` | `/api/v1/products/:id` | Admin | Delete a product |
+| `POST` | `/api/v1/products/:id/image` | Admin | Upload product image |
+| `DELETE` | `/api/v1/products/:id/image` | Admin | Delete product image |
 
 ### Categories
 
-- `GET /api/v1/categories` - Get category tree
-- `GET /api/v1/categories/:id` - Get category details
-- `POST /api/v1/categories` - Create category (Admin)
-- `PATCH /api/v1/categories/:id` - Update category (Admin)
-- `DELETE /api/v1/categories/:id` - Delete category (Admin)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/api/v1/categories` | Public | Get category tree (nested) |
+| `GET` | `/api/v1/categories/:id` | Public | Get category details |
+| `GET` | `/api/v1/categories/:id/products` | Public | Get products in category |
+| `POST` | `/api/v1/categories` | Admin | Create a new category |
+| `PATCH` | `/api/v1/categories/:id` | Admin | Update a category |
+| `DELETE` | `/api/v1/categories/:id` | Admin | Delete a category |
+| `POST` | `/api/v1/categories/:id/image` | Admin | Upload category image |
+| `DELETE` | `/api/v1/categories/:id/image` | Admin | Delete category image |
 
 ### Orders
 
-- `POST /api/v1/orders` - Create order from cart
-- `GET /api/v1/orders/:id` - Get order details
-- `POST /api/v1/orders/:id/checkout` - Initiate payment
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `POST` | `/api/v1/orders` | JWT | Create order from cart items |
+| `GET` | `/api/v1/orders` | JWT | Get current user's orders |
+| `GET` | `/api/v1/orders/:id` | JWT | Get order details |
+| `POST` | `/api/v1/orders/:id/checkout` | JWT | Initiate payment |
+| `DELETE` | `/api/v1/orders/:id` | JWT | Cancel order (pending only) |
+| `GET` | `/api/v1/orders/admin/all` | Admin | Get all orders (paginated) |
 
 ### Payments
 
-- `POST /api/v1/payments/stripe/webhook` - Stripe webhook
-- `POST /api/v1/payments/bkash/callback` - bKash callback
-- `GET /api/v1/payments/:id` - Get payment details
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `POST` | `/api/v1/payments` | JWT | Create payment for an order |
+| `GET` | `/api/v1/payments/:paymentId` | JWT | Get payment details |
+| `GET` | `/api/v1/payments/order/:orderId` | JWT | Get payments for an order |
+| `GET` | `/api/v1/payments/admin/all` | Admin | Get all payments (paginated) |
+| `POST` | `/api/v1/payments/stripe/webhook` | Public | Stripe webhook handler |
+| `POST` | `/api/v1/payments/bkash/callback` | Public | bKash callback handler |
+
+### Health
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/api/v1` | Public | Basic health check |
+| `GET` | `/api/v1/health` | Public | Detailed health check |
+
+**Total: 43 endpoints**
 
 ## 🧪 Test Coverage
 

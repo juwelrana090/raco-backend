@@ -40,7 +40,11 @@ export class OrdersController {
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new order from cart items' })
+  @ApiOperation({
+    summary: 'Create a new order from cart items',
+    description:
+      'Create an order with one or more products. Price is snapshot at order time. Stock is NOT reduced until payment succeeds.',
+  })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Order created successfully',
@@ -73,7 +77,11 @@ export class OrdersController {
    * @returns Order details with items and payments
    */
   @Get(':id')
-  @ApiOperation({ summary: 'Get order by ID' })
+  @ApiOperation({
+    summary: 'Get order by ID',
+    description:
+      'Returns order details including items, total amount, and payment status. Ownership is verified.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Order retrieved successfully',
@@ -98,7 +106,11 @@ export class OrdersController {
    * @returns List of user's orders with items and payments
    */
   @Get()
-  @ApiOperation({ summary: "Get current user's orders" })
+  @ApiOperation({
+    summary: "Get current user's orders",
+    description:
+      'Returns all orders placed by the authenticated user with items and payment status.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Orders retrieved successfully',
@@ -117,14 +129,18 @@ export class OrdersController {
    * @returns Payment details for client to complete payment
    */
   @Post(':id/checkout')
-  @ApiOperation({ summary: 'Initiate checkout for an order' })
+  @ApiOperation({
+    summary: 'Initiate checkout for an order',
+    description:
+      'Start the payment process for a pending order. Returns provider-specific payment details (e.g., Stripe client_secret or bKash URL).',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Checkout initiated successfully',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Order cannot be checked out',
+    description: 'Order cannot be checked out (already paid or cancelled)',
   })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Order not found' })
   @ApiResponse({
@@ -149,14 +165,18 @@ export class OrdersController {
    */
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Cancel an order (only if pending)' })
+  @ApiOperation({
+    summary: 'Cancel an order (only if pending)',
+    description:
+      'Cancel a pending order. Cannot cancel orders that are already paid or cancelled.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Order cancelled successfully',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Order cannot be cancelled',
+    description: 'Order cannot be cancelled (already paid or cancelled)',
   })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Order not found' })
   @ApiResponse({
@@ -176,13 +196,18 @@ export class OrdersController {
    */
   @Get('admin/all')
   @UseGuards(AdminGuard)
-  @ApiOperation({ summary: 'Get all orders — Admin only' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOperation({
+    summary: 'Get all orders — Admin only',
+    description:
+      'Returns a paginated list of all orders across all users. Supports filtering by status.',
+  })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
   @ApiQuery({
     name: 'status',
     required: false,
     enum: ['PENDING', 'PAID', 'CANCELED'],
+    description: 'Filter by order status',
   })
   @ApiResponse({ status: HttpStatus.OK, description: 'All orders retrieved' })
   @ApiResponse({
