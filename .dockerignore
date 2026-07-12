@@ -7,23 +7,18 @@ pnpm-debug.log
 # Build output
 dist
 build
-.next
-out
 
-# Environment files
+# Environment files (never bake secrets into image)
 .env
 .env.local
 .env.*.local
+.env.docker
 
 # IDE
 .idea
 .vscode
 *.swp
 *.swo
-*~
-.project
-.classpath
-.settings
 
 # OS
 .DS_Store
@@ -32,10 +27,10 @@ Thumbs.db
 # Git
 .git
 .gitignore
+.gitattributes
 
 # Docker
-Dockerfile
-docker-compose.yml
+docker-compose*.yml
 .dockerignore
 
 # Testing
@@ -46,18 +41,30 @@ coverage
 test
 
 # Documentation
-README.md
 *.md
 docs
 
 # Claude AI
 .claude
+.context
 
 # Logs
 logs
 *.log
 
-# Misc
-.cache
-.temp
-.tmp
+# TypeScript incremental cache
+*.tsbuildinfo
+tsconfig.build.jso
+tsconfig.build.tsbuildinfo
+
+# Misc scripts
+deploy.sh
+install-deps.sh
+setup-claude.sh
+passenger.json
+ecosystem.config.js
+nginx.conf.plesk
+
+# Lock files (only keep package-lock.json for npm)
+pnpm-lock.yaml
+pnpm-workspace.yaml

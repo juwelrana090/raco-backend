@@ -42,6 +42,7 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 .env.production
+.env.docker
 # ✅ .env.example is intentionally NOT ignored — commit it
 
 # temp directory
@@ -84,3 +85,4 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # Ignore all type of image files
 tsconfig.build.tsbuildinfo
 tsconfig.*.jso
+tsconfig.*.tsbuildinfo
