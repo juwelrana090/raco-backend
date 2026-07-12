@@ -79,3 +79,8 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 *.tgz
 *.tar.xz
 *.tar.bz2
+
+
+# Ignore all type of image files
+tsconfig.build.tsbuildinfo
+tsconfig.*.jso
