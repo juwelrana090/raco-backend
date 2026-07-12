@@ -11,7 +11,7 @@
     "start": "nest start",
     "kill:port": "powershell -Command \"$p = netstat -ano | Select-String ':4000 ' | Where-Object { $_ -match 'LISTENING' } | ForEach-Object { ($_ -split '\\s+')[-1] } | Select-Object -First 1; if ($p) { taskkill /PID $p /F } else { Write-Host 'Port 4000 is free' }\"",
     "dev:fresh": "npm run kill:port && pnpm dev:watch",
-    "dev:watch": "nest start --watch",
+    "dev:watch": "npm run prisma:generate && nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
